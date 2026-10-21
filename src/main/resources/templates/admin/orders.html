@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Global Rental Orders Audit')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                    <a href="/admin/dashboard" class="hover:underline">SUDO Command</a>
+                    <span>/</span>
+                    <span class="text-mono-900 dark:text-mono-100">Global Orders Audit</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Global Transaction Ledger</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">Audit log of all rental orders, unique item serial tags, and booking statuses</p>
+            </div>
+
+            <a href="/admin/dashboard" class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800">
+                &larr; Admin Command Center
+            </a>
+        </div>
+
+        <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                        <tr>
+                            <th class="px-5 py-3">Order Code</th>
+                            <th class="px-5 py-3">Customer / Lessee</th>
+                            <th class="px-5 py-3">Items & Tracking IDs</th>
+                            <th class="px-5 py-3">Dates</th>
+                            <th class="px-5 py-3">Days</th>
+                            <th class="px-5 py-3">Total Amount</th>
+                            <th class="px-5 py-3">Payment (Razorpay)</th>
+                            <th class="px-5 py-3">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-mono-100 dark:divide-mono-800">
+                        <tr th:each="o : ${orders}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40 transition-colors">
+                            <td class="px-5 py-4 font-mono font-bold" th:text="${o.orderCode}">ORD-001</td>
+                            <td class="px-5 py-4">
+                                <div class="font-bold text-mono-900 dark:text-mono-100" th:text="${o.buyer.name}">Name</div>
+                                <div class="text-mono-500 text-[11px]" th:text="${o.buyer.email}">email</div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="space-y-1">
+                                    <div th:each="i : ${o.items}" class="flex items-center space-x-2">
+                                        <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black text-white dark:bg-white dark:text-black font-extrabold"
+                                              th:text="${i.itemCodeSnapshot}">SKU-001</span>
+                                        <span class="truncate max-w-[180px]" th:text="${i.itemNameSnapshot}">Name</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 font-mono text-mono-500">
+                                <span th:text="${o.rentalStartDate}">2026-10-08</span> &rarr;
+                                <span th:text="${o.rentalEndDate}">2026-10-11</span>
+                            </td>
+                            <td class="px-5 py-4 font-mono" th:text="${o.rentalDays} + ' d'">3 d</td>
+                            <td class="px-5 py-4 font-mono font-bold text-sm">
+                                ₹<span th:text="${#numbers.formatDecimal(o.totalAmount, 1, 2)}">0.00</span>
+                            </td>
+                            <td class="px-5 py-4 font-mono text-[11px]">
+                                <div class="flex items-center space-x-1 font-bold text-emerald-600 dark:text-emerald-400">
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                    <span th:text="${o.paymentStatus != null ? o.paymentStatus : 'PAID'}">PAID</span>
+                                </div>
+                                <div class="text-[10px] text-mono-400 truncate max-w-[130px]" th:title="${o.razorpayPaymentId}"
+                                     th:text="${o.razorpayPaymentId != null ? o.razorpayPaymentId : 'pay_sim_' + o.id}">pay_001</div>
+                                <div class="text-[10px] text-mono-500 uppercase" th:text="${o.paymentMethod != null ? o.paymentMethod : 'RAZORPAY'}">RAZORPAY</div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span th:if="${o.status == 'RETURNED'}" 
+                                      class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200">
+                                    RETURNED
+                                </span>
+                                <span th:if="${o.status == 'RETURN_REQUESTED'}" 
+                                      class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                                    RETURN REQUESTED
+                                </span>
+                                <span th:if="${o.status != 'RETURNED' and o.status != 'RETURN_REQUESTED'}" 
+                                      class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                                      th:text="${o.status}">CONFIRMED</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

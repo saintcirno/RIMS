@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Manage Equipment Fleet')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                    <a href="/seller/dashboard" class="hover:underline">Seller Hub</a>
+                    <span>/</span>
+                    <span class="text-mono-900 dark:text-mono-100">Equipment Fleet</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Registered Hardware Inventory</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">Manage unique asset tracking IDs, pricing rates, and public catalog status</p>
+            </div>
+
+            <a href="/seller/items/new" 
+               class="px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 flex items-center space-x-1.5 shadow-md">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Register New Item</span>
+            </a>
+        </div>
+
+        <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+            
+            <div th:if="${items.isEmpty()}" class="p-16 text-center">
+                <i data-lucide="package" class="w-12 h-12 mx-auto text-mono-400 mb-3"></i>
+                <h3 class="text-base font-bold">No hardware listed yet</h3>
+                <p class="text-xs text-mono-500 mt-1 max-w-sm mx-auto">Register your organization's tools, cinema packages, or heavy machinery to begin leasing.</p>
+                <a href="/seller/items/new" class="mt-4 inline-block px-4 py-2 text-xs font-bold rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                    Register Equipment
+                </a>
+            </div>
+
+            <div th:unless="${items.isEmpty()}" class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                        <tr>
+                            <th class="px-5 py-3">Photo</th>
+                            <th class="px-5 py-3">Tracking Code (Unique ID)</th>
+                            <th class="px-5 py-3">Equipment Name</th>
+                            <th class="px-5 py-3">Category</th>
+                            <th class="px-5 py-3">Daily Rate</th>
+                            <th class="px-5 py-3">Available</th>
+                            <th class="px-5 py-3">Tags</th>
+                            <th class="px-5 py-3">Visibility</th>
+                            <th class="px-5 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-mono-100 dark:divide-mono-800">
+                        <tr th:each="i : ${items}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40 transition-colors">
+                            <td class="px-5 py-3">
+                                <img th:src="${i.primaryImageUrl}" th:alt="${i.name}" 
+                                     class="w-12 h-12 rounded-lg object-cover bg-mono-100 dark:bg-mono-800">
+                            </td>
+                            <td class="px-5 py-3 font-mono font-bold text-mono-900 dark:text-mono-100" th:text="${i.itemCode}">
+                                RIMS-001
+                            </td>
+                            <td class="px-5 py-3 font-semibold">
+                                <a th:href="@{'/items/' + ${i.id}}" class="hover:underline text-mono-900 dark:text-mono-100" th:text="${i.name}">
+                                    Item Name
+                                </a>
+                            </td>
+                            <td class="px-5 py-3 text-mono-500" th:text="${i.category.name}">Category</td>
+                            <td class="px-5 py-3 font-mono font-bold">
+                                ₹<span th:text="${#numbers.formatDecimal(i.pricePerDay, 1, 2)}">100.00</span>
+                            </td>
+                            <td class="px-5 py-3 font-mono">
+                                <span th:text="${i.availableQuantity}">1</span> units
+                            </td>
+                            <td class="px-5 py-3">
+                                <div class="flex flex-wrap gap-1 max-w-[150px]">
+                                    <span th:each="t : ${i.tagList}" 
+                                          class="text-[9px] font-mono px-1 py-0.5 rounded bg-mono-100 dark:bg-mono-800 text-mono-600 dark:text-mono-400"
+                                          th:text="'#' + ${t}">#tag</span>
+                                </div>
+                            </td>
+                            <td class="px-5 py-3">
+                                <span th:if="${i.active}" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                    PUBLISHED
+                                </span>
+                                <span th:unless="${i.active}" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-mono-200 text-mono-700 dark:bg-mono-800 dark:text-mono-300">
+                                    PAUSED
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                <form th:action="@{'/seller/items/' + ${i.id} + '/toggle'}" method="post" class="inline">
+                                    <button type="submit" 
+                                            class="px-2.5 py-1 rounded text-[11px] font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 transition-colors">
+                                        <span th:text="${i.active ? 'Pause' : 'Activate'}">Toggle</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Checkout & Razorpay Payment')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-mono-900 dark:text-mono-100">Confirm Rental & Razorpay Checkout</h1>
+                <p class="text-xs text-mono-500 font-mono mt-1">Review contractual details, allocate hardware serial tags, and complete payment via Razorpay</p>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono">
+                <span th:if="${isLiveGateway}" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-semibold border border-emerald-300 dark:border-emerald-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Razorpay Live Gateway</span>
+                </span>
+                <span th:unless="${isLiveGateway}" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-mono-200 text-mono-800 dark:bg-mono-800 dark:text-mono-200 font-semibold border border-mono-300 dark:border-mono-700">
+                    <span class="w-2 h-2 rounded-full bg-mono-500"></span>
+                    <span>Razorpay Test Sandbox</span>
+                </span>
+            </div>
+        </div>
+
+        <form id="checkoutForm" action="/checkout" method="post" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Dates, Dispatch & Details (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Lessee Identification Card -->
+                <div class="p-6 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                    <h3 class="text-xs font-mono uppercase tracking-wider text-mono-500 mb-3">1. Verified Lessee Information</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+                        <div>
+                            <span class="text-mono-400 block text-[10px]">Full Name:</span>
+                            <span class="font-bold text-mono-900 dark:text-mono-100" th:text="${buyer.name}">John Doe</span>
+                        </div>
+                        <div>
+                            <span class="text-mono-400 block text-[10px]">Email Address:</span>
+                            <span class="font-bold text-mono-900 dark:text-mono-100" th:text="${buyer.email}">buyer@domain.com</span>
+                        </div>
+                        <div>
+                            <span class="text-mono-400 block text-[10px]">Contact Phone:</span>
+                            <span class="text-mono-700 dark:text-mono-300" th:text="${buyer.phone != null ? buyer.phone : '+91-9876543210'}">+91-9876543210</span>
+                        </div>
+                        <div>
+                            <span class="text-mono-400 block text-[10px]">Registered Address:</span>
+                            <span class="text-mono-700 dark:text-mono-300" th:text="${buyer.address != null ? buyer.address : 'Plot 42, Sector 18, Gurugram, Haryana'}">Location</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rental Schedule & Dispatch Details -->
+                <div class="p-6 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 space-y-4">
+                    <h3 class="text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">2. Rental Window & Logistics</h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-mono-500 mb-1">Rental Start Date *</label>
+                            <input type="date" id="startDateInput" name="startDate" th:value="${defaultStartDate}" required
+                                   class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-mono-500 mb-1">Rental Duration (Days) *</label>
+                            <input type="number" id="rentalDaysInput" name="rentalDays" value="3" min="1" max="90" required
+                                   onchange="updateTotalCalculation()" oninput="updateTotalCalculation()"
+                                   class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-mono-500 mb-1">Dispatch / Site Delivery Notes</label>
+                        <textarea id="notesInput" name="notes" rows="3" placeholder="e.g. Deliver to Production Stage 4, Film City Goregaon, Mumbai. Call site manager on arrival."
+                                  class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"></textarea>
+                    </div>
+                </div>
+
+                <!-- Razorpay Gateway Settlement Details -->
+                <div class="p-6 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-mono uppercase tracking-wider text-mono-500">3. Payment & Settlement Gateway</h3>
+                        <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-mono-100 dark:bg-mono-800 text-mono-700 dark:text-mono-300">
+                            256-bit SSL Encrypted
+                        </span>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-mono-200 dark:border-mono-800 bg-mono-50 dark:bg-mono-950 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-black text-base font-mono">
+                                    ₹
+                                </div>
+                                <div>
+                                    <div class="font-bold text-sm text-mono-900 dark:text-mono-100 flex items-center space-x-2">
+                                        <span>Razorpay Payment Gateway</span>
+                                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                                    </div>
+                                    <p class="text-[11px] text-mono-500">RBI Compliant &bull; PCI-DSS Level 1 Certified</p>
+                                </div>
+                            </div>
+                            <span class="font-mono text-xs font-bold text-mono-900 dark:text-mono-100">INR (₹)</span>
+                        </div>
+
+                        <!-- Supported Payment Methods Icons -->
+                        <div class="pt-2 border-t border-mono-200 dark:border-mono-800 flex flex-wrap items-center gap-2 text-[11px] font-mono text-mono-600 dark:text-mono-400">
+                            <span class="px-2 py-1 rounded bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 inline-flex items-center space-x-1">
+                                <i data-lucide="smartphone" class="w-3 h-3"></i>
+                                <span>UPI (GPay / PhonePe / Paytm / BHIM)</span>
+                            </span>
+                            <span class="px-2 py-1 rounded bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 inline-flex items-center space-x-1">
+                                <i data-lucide="credit-card" class="w-3 h-3"></i>
+                                <span>Cards (Visa, Mastercard, RuPay)</span>
+                            </span>
+                            <span class="px-2 py-1 rounded bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 inline-flex items-center space-x-1">
+                                <i data-lucide="building-2" class="w-3 h-3"></i>
+                                <span>NetBanking (50+ Banks)</span>
+                            </span>
+                        </div>
+
+                        <div class="text-[11px] text-mono-400 leading-relaxed font-mono">
+                            <span th:if="${isLiveGateway}">
+                                Payments are processed directly through your production Razorpay account (<span class="font-bold" th:text="${razorpayKeyId}">rzp_...</span>).
+                            </span>
+                            <span th:unless="${isLiveGateway}">
+                                Configured in Razorpay Sandbox Mode. You can test transactions instantly with the integrated simulator, or pass live credentials (<code class="bg-mono-200 dark:bg-mono-800 px-1 py-0.5 rounded">RAZORPAY_KEY_ID</code> and <code class="bg-mono-200 dark:bg-mono-800 px-1 py-0.5 rounded">RAZORPAY_KEY_SECRET</code>) anytime.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Order Review & Lock (5 cols) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <div class="p-6 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-xl space-y-4 sticky top-6">
+                    <h3 class="font-bold text-sm uppercase font-mono tracking-wider text-mono-900 dark:text-mono-100 flex items-center justify-between">
+                        <span>Allocated Assets</span>
+                        <span class="text-xs font-normal text-mono-500 font-mono" th:text="${cart.items.size()} + ' item(s)'">1 item</span>
+                    </h3>
+                    
+                    <div class="divide-y divide-mono-100 dark:divide-mono-800 max-h-72 overflow-y-auto pr-1">
+                        <div th:each="ci : ${cart.items}" class="py-3 flex items-start justify-between text-xs cart-item-row"
+                             th:data-price="${ci.item.pricePerDay}" 
+                             th:data-deposit="${ci.item.depositAmount != null ? ci.item.depositAmount : 0}"
+                             th:data-qty="${ci.quantity}">
+                            <div>
+                                <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-mono-100 dark:bg-mono-800 text-mono-800 dark:text-mono-200 font-bold" 
+                                      th:text="${ci.item.itemCode}">SKU-001</span>
+                                <h4 class="font-bold text-mono-900 dark:text-mono-100 mt-1" th:text="${ci.item.name}">Name</h4>
+                                <div class="text-[11px] text-mono-500">
+                                    Provider: <span th:text="${ci.item.seller.organizationName != null ? ci.item.seller.organizationName : ci.item.seller.name}">Org</span>
+                                </div>
+                                <div class="text-mono-400 font-mono text-[10px] mt-0.5 space-y-0.5">
+                                    <div><span th:text="${ci.quantity}">1</span> unit(s) &times; ₹<span th:text="${ci.item.pricePerDay}">50</span>/day</div>
+                                    <div th:if="${ci.item.depositAmount != null and ci.item.depositAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-emerald-600 dark:text-emerald-400">
+                                        +₹<span th:text="${#numbers.formatDecimal(ci.item.depositAmount, 1, 2)}">0.00</span> deposit/unit
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="font-mono font-bold text-sm item-subtotal">
+                                ₹<span th:text="${#numbers.formatDecimal(ci.subtotal, 1, 2)}">150.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Calculations breakdown -->
+                    <div class="border-t-2 border-mono-200 dark:border-mono-800 pt-4 space-y-2 text-xs font-mono">
+                        <div class="flex justify-between text-mono-500">
+                            <span>Rental Duration:</span>
+                            <span id="durationDisplay" class="font-bold text-mono-900 dark:text-mono-100">3 Days</span>
+                        </div>
+                        <div class="flex justify-between text-mono-500">
+                            <span>Base Rental Charges:</span>
+                            <span>₹<span id="rentalFeeTotalDisplay">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between text-mono-500">
+                            <span class="flex items-center space-x-1">
+                                <span>Security Deposit:</span>
+                                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">100% Refundable</span>
+                            </span>
+                            <span>₹<span id="depositTotalDisplay">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between text-base font-extrabold text-mono-900 dark:text-mono-100 pt-2 border-t border-mono-100 dark:border-mono-800">
+                            <span>Total Payable (INR):</span>
+                            <span>₹<span id="grandTotalDisplay">0.00</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Action Button -->
+                    <button type="button" id="payRazorpayBtn" onclick="initiateRazorpayCheckout()"
+                            class="w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow-xl flex items-center justify-center space-x-2 transition-all">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span id="payBtnText">Pay ₹<span id="payBtnAmount">0.00</span> via Razorpay</span>
+                    </button>
+
+                    <div class="text-[10px] text-mono-400 text-center font-mono space-y-1">
+                        <p>Orders are backed by 100% cryptographic payment verification via Razorpay.</p>
+                        <p>Unique serial identification numbers are assigned upon transaction completion.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </form>
+
+    </main>
+
+    <!-- Razorpay Interactive Sandbox / Simulator Modal -->
+    <div id="razorpaySimModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-mono-900 border-2 border-black dark:border-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="p-5 bg-black text-white dark:bg-mono-950 dark:text-white border-b border-mono-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded bg-white text-black flex items-center justify-center font-black text-sm">
+                        ₹
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm">Razorpay Checkout</h4>
+                        <div class="text-[10px] font-mono text-mono-400">Transaction Simulator &bull; Sandbox Mode</div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeRazorpaySimModal()" class="text-mono-400 hover:text-white text-lg font-bold">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 space-y-5 text-xs font-mono">
+                <!-- Amount banner -->
+                <div class="p-4 rounded-xl bg-mono-50 dark:bg-mono-950 border border-mono-200 dark:border-mono-800 flex items-center justify-between">
+                    <div>
+                        <div class="text-mono-400 text-[10px] uppercase">Amount to Authorize</div>
+                        <div class="text-xl font-black text-mono-900 dark:text-mono-100">
+                            ₹<span id="simModalAmount">0.00</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-mono-400 text-[10px] uppercase">Order Reference</div>
+                        <div class="font-bold text-mono-700 dark:text-mono-300 text-[11px]" id="simModalOrderCode">RIMS-ORD-000</div>
+                    </div>
+                </div>
+
+                <!-- Payment Instrument Selector -->
+                <div class="space-y-2">
+                    <label class="block text-mono-500 text-[11px] uppercase tracking-wider">Choose Simulated Payment Instrument</label>
+                    
+                    <label class="p-3 rounded-lg border border-mono-200 dark:border-mono-800 flex items-center space-x-3 cursor-pointer hover:bg-mono-50 dark:hover:bg-mono-800/40">
+                        <input type="radio" name="simPaymentMethod" value="UPI" checked class="text-black dark:text-white focus:ring-black">
+                        <div>
+                            <div class="font-bold text-mono-900 dark:text-mono-100">Instant UPI (Google Pay / PhonePe)</div>
+                            <div class="text-[10px] text-mono-400">VPA: buyer@okhdfcbank &bull; Instant Settlement</div>
+                        </div>
+                    </label>
+
+                    <label class="p-3 rounded-lg border border-mono-200 dark:border-mono-800 flex items-center space-x-3 cursor-pointer hover:bg-mono-50 dark:hover:bg-mono-800/40">
+                        <input type="radio" name="simPaymentMethod" value="CARD" class="text-black dark:text-white focus:ring-black">
+                        <div>
+                            <div class="font-bold text-mono-900 dark:text-mono-100">Corporate Credit Card (Visa / Mastercard)</div>
+                            <div class="text-[10px] text-mono-400">Card ending in 4242 &bull; 3D Secure OTP Bypassed</div>
+                        </div>
+                    </label>
+
+                    <label class="p-3 rounded-lg border border-mono-200 dark:border-mono-800 flex items-center space-x-3 cursor-pointer hover:bg-mono-50 dark:hover:bg-mono-800/40">
+                        <input type="radio" name="simPaymentMethod" value="NETBANKING" class="text-black dark:text-white focus:ring-black">
+                        <div>
+                            <div class="font-bold text-mono-900 dark:text-mono-100">NetBanking (HDFC / ICICI / SBI)</div>
+                            <div class="text-[10px] text-mono-400">Direct Institutional Settlement Account</div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Simulation Info Note -->
+                <div class="text-[10px] text-mono-500 leading-relaxed bg-mono-100 dark:bg-mono-800/50 p-2.5 rounded-lg border border-mono-200 dark:border-mono-700">
+                    <i data-lucide="info" class="w-3.5 h-3.5 inline mr-1 text-mono-700 dark:text-mono-300"></i>
+                    Clicking "Authorize Payment" will generate a cryptographic Razorpay payment verification payload and commit the rental reservation to the database.
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-2 pt-2">
+                    <button type="button" id="confirmSimPaymentBtn" onclick="submitSimulatedPayment()"
+                            class="w-full py-3 rounded-xl bg-black text-white dark:bg-white dark:text-black font-bold uppercase tracking-wider text-xs hover:opacity-90 flex items-center justify-center space-x-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        <span>Authorize Payment (Simulate Success)</span>
+                    </button>
+                    <button type="button" onclick="closeRazorpaySimModal()"
+                            class="w-full py-2 text-mono-500 hover:text-black dark:hover:text-white text-[11px] font-semibold text-center">
+                        Cancel Transaction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Razorpay Checkout JS SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const isLiveGateway = /*[[${isLiveGateway}]]*/ false;
+        const defaultKeyId = /*[[${razorpayKeyId}]]*/ 'rzp_test_RIMSdemoKey123';
+        const companyName = /*[[${companyName}]]*/ 'RIMS Equipment Rental';
+
+        let currentPendingOrder = null;
+
+        // Dynamic Total Calculation based on rentalDays
+        function updateTotalCalculation() {
+            const daysInput = document.getElementById('rentalDaysInput');
+            let days = parseInt(daysInput.value) || 1;
+            if (days < 1) days = 1;
+
+            let grandRentalFee = 0;
+            let grandDeposit = 0;
+            const rows = document.querySelectorAll('.cart-item-row');
+            rows.forEach(row => {
+                const price = parseFloat(row.getAttribute('data-price')) || 0;
+                const deposit = parseFloat(row.getAttribute('data-deposit')) || 0;
+                const qty = parseInt(row.getAttribute('data-qty')) || 1;
+
+                const lineRental = price * qty * days;
+                const lineDeposit = deposit * qty;
+                const lineSubtotal = lineRental + lineDeposit;
+
+                grandRentalFee += lineRental;
+                grandDeposit += lineDeposit;
+
+                const subtotalEl = row.querySelector('.item-subtotal');
+                if (subtotalEl) {
+                    subtotalEl.innerText = '₹' + lineSubtotal.toFixed(2);
+                }
+            });
+
+            const grandTotal = grandRentalFee + grandDeposit;
+            const rentalFeeEl = document.getElementById('rentalFeeTotalDisplay');
+            if (rentalFeeEl) rentalFeeEl.innerText = grandRentalFee.toFixed(2);
+
+            const depositEl = document.getElementById('depositTotalDisplay');
+            if (depositEl) depositEl.innerText = grandDeposit.toFixed(2);
+
+            document.getElementById('durationDisplay').innerText = days + (days === 1 ? ' Day' : ' Days');
+            document.getElementById('grandTotalDisplay').innerText = grandTotal.toFixed(2);
+            document.getElementById('payBtnAmount').innerText = grandTotal.toFixed(2);
+        }
+
+        // Initialize calculations on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTotalCalculation();
+        });
+
+        // Main checkout initiation
+        async function initiateRazorpayCheckout() {
+            const btn = document.getElementById('payRazorpayBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin mr-2">&#9696;</span> Preparing Secure Order...`;
+
+            const startDate = document.getElementById('startDateInput').value;
+            const rentalDays = document.getElementById('rentalDaysInput').value;
+            const notes = document.getElementById('notesInput').value;
+
+            try {
+                const params = new URLSearchParams({
+                    startDate: startDate,
+                    rentalDays: rentalDays,
+                    notes: notes
+                });
+
+                const response = await fetch('/checkout/initiate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params.toString()
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert('Order initiation failed: ' + (data.message || 'Unknown error'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    return;
+                }
+
+                currentPendingOrder = data;
+
+                // If live gateway or real Razorpay script is available
+                if (data.isLive && typeof Razorpay !== 'undefined') {
+                    openLiveRazorpayCheckout(data);
+                } else {
+                    // Open interactive sandbox modal
+                    openRazorpaySimModal(data);
+                }
+            } catch (err) {
+                console.error('Checkout error:', err);
+                alert('An error occurred during checkout initiation. Please check your connection.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Live Razorpay popup invocation
+        function openLiveRazorpayCheckout(data) {
+            const options = {
+                key: data.keyId,
+                amount: data.amount,
+                currency: data.currency,
+                name: data.companyName || companyName,
+                description: 'Equipment Rental: ' + data.orderCode,
+                order_id: data.razorpayOrderId,
+                handler: async function (response) {
+                    await verifyAndCompletePayment({
+                        orderId: data.orderId,
+                        razorpayPaymentId: response.razorpay_payment_id,
+                        razorpayOrderId: response.razorpay_order_id,
+                        razorpaySignature: response.razorpay_signature
+                    });
+                },
+                prefill: {
+                    name: data.buyerName,
+                    email: data.buyerEmail,
+                    contact: data.buyerPhone
+                },
+                theme: {
+                    color: '#000000'
+                },
+                modal: {
+                    ondismiss: function() {
+                        console.log('Razorpay modal closed by user');
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response){
+                alert('Payment Failed: ' + response.error.description);
+            });
+            rzp.open();
+        }
+
+        // Open Simulator Modal
+        function openRazorpaySimModal(data) {
+            const modal = document.getElementById('razorpaySimModal');
+            document.getElementById('simModalAmount').innerText = (data.amount / 100).toFixed(2);
+            document.getElementById('simModalOrderCode').innerText = data.orderCode;
+            modal.classList.remove('hidden');
+        }
+
+        function closeRazorpaySimModal() {
+            const modal = document.getElementById('razorpaySimModal');
+            modal.classList.add('hidden');
+        }
+
+        // Submit simulated payment from modal
+        async function submitSimulatedPayment() {
+            if (!currentPendingOrder) return;
+
+            const confirmBtn = document.getElementById('confirmSimPaymentBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<span class="inline-block animate-spin mr-2">&#9696;</span> Verifying HMAC-SHA256 Signature...`;
+
+            const simPaymentId = 'pay_sim_' + Date.now();
+            const simSignature = 'sig_sim_' + Math.random().toString(36).substring(2, 15);
+
+            await verifyAndCompletePayment({
+                orderId: currentPendingOrder.orderId,
+                razorpayPaymentId: simPaymentId,
+                razorpayOrderId: currentPendingOrder.razorpayOrderId,
+                razorpaySignature: simSignature
+            });
+        }
+
+        // Verify cryptographic signature on backend
+        async function verifyAndCompletePayment(payload) {
+            try {
+                const response = await fetch('/checkout/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const resData = await response.json();
+
+                if (resData.success) {
+                    window.location.href = resData.redirectUrl;
+                } else {
+                    alert('Payment Verification Failed: ' + (resData.message || 'Signature mismatch'));
+                }
+            } catch (err) {
+                console.error('Verification error:', err);
+                alert('Payment verification encountered an unexpected error.');
+            }
+        }
+        /*]]>*/
+    </script>
+
+</body>
+</html>

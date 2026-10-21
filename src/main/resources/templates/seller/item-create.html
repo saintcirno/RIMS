@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Register Equipment')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                    <a href="/seller/dashboard" class="hover:underline">Seller Hub</a>
+                    <span>/</span>
+                    <span class="text-mono-900 dark:text-mono-100">Equipment Registration</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Register Equipment Inventory</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">Register single or multiple assets with unique tracking codes, tags, and multi-photo galleries</p>
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="flex p-1 rounded-xl bg-mono-200 dark:bg-mono-800 text-xs font-semibold">
+                <button type="button" id="tabSingleBtn" onclick="switchTab('single')"
+                        class="px-4 py-2 rounded-lg bg-white dark:bg-mono-950 text-black dark:text-white shadow-sm transition-all">
+                    Single Item Registration
+                </button>
+                <button type="button" id="tabBatchBtn" onclick="switchTab('batch')"
+                        class="px-4 py-2 rounded-lg text-mono-600 dark:text-mono-400 hover:text-black dark:hover:text-white transition-all">
+                    Batch / Multiple Items
+                </button>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 1: SINGLE ITEM REGISTRATION -->
+        <!-- ======================================================== -->
+        <div id="singleItemSection" class="bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 rounded-2xl p-8 shadow-sm">
+            <form action="/seller/items/new" method="post" class="space-y-6">
+                
+                <div class="border-b border-mono-200 dark:border-mono-800 pb-4 mb-6">
+                    <h2 class="text-lg font-bold">Single Equipment Registration</h2>
+                    <p class="text-xs text-mono-500">Add an individual asset with comprehensive specifications and multi-angle photo URLs.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Unique ID (Item Code) -->
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                            Unique Tracking Code / SKU
+                        </label>
+                        <input type="text" name="customItemCode" placeholder="Leave blank to auto-generate (e.g. RIMS-CINE-8491)"
+                               class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                        <span class="text-[10px] text-mono-400 font-mono mt-1 block">Permanent serial ID used across receipts and audits</span>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-xs font-mono uppercase tracking-wider text-mono-500">
+                                Equipment Category *
+                            </label>
+                            <span class="text-[10px] text-mono-400 font-mono">Select 'Other' if unclassified</span>
+                        </div>
+                        <select name="categoryId"
+                                class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Item Name -->
+                <div>
+                    <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                        Equipment Name / Commercial Title *
+                    </label>
+                    <input type="text" name="name" required placeholder="e.g. RED V-Raptor XL 8K Production Rig"
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                </div>
+
+                <!-- Description with Hover Reveal Callout -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-mono uppercase tracking-wider text-mono-500">
+                            Description & Operational Specs *
+                        </label>
+                        <span class="text-[11px] text-mono-500 font-mono flex items-center space-x-1">
+                            <i data-lucide="eye" class="w-3 h-3"></i>
+                            <span>Revealed to buyers when they hover their mouse over this item</span>
+                        </span>
+                    </div>
+                    <textarea name="description" rows="4" required placeholder="Enter full equipment capabilities, technical specifications, included accessories, mount standards, and operating limits. This will appear when clients hover over the item card!"
+                              class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"></textarea>
+                </div>
+
+                <!-- Pricing & Quantity Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                            Rental Rate (₹/Day) *
+                        </label>
+                        <input type="number" step="0.01" name="pricePerDay" required placeholder="150.00"
+                               class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                            Security Deposit (₹)
+                        </label>
+                        <input type="number" step="0.01" name="depositAmount" placeholder="500.00"
+                               class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                            Units in Fleet *
+                        </label>
+                        <input type="number" name="quantity" value="1" min="1" required
+                               class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                </div>
+
+                <!-- Tags for Fast User Identification -->
+                <div>
+                    <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                        Identification Tags (Comma-Separated) *
+                    </label>
+                    <input type="text" name="tags" placeholder="e.g. 8K, Cinema, Full-Frame, Studio, Sony, PL-Mount"
+                           class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    <span class="text-[10px] text-mono-400 font-mono mt-1 block">Enables clients to filter and identify specific hardware quickly</span>
+                </div>
+
+                <!-- Single or Multiple Photos -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-mono uppercase tracking-wider text-mono-500">
+                            Single or Multiple Photo URLs (One URL per line)
+                        </label>
+                        <span class="text-[10px] font-mono text-mono-400">First URL will serve as the primary card image</span>
+                    </div>
+                    <textarea name="photosText" rows="3" placeholder="https://images.unsplash.com/photo-1516035069371-29a1b244cc32
+https://images.unsplash.com/photo-1492691527719-9d1e07e534b4"
+                              class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-4 border-t border-mono-200 dark:border-mono-800 flex justify-end">
+                    <button type="submit" 
+                            class="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow-lg">
+                        Publish Equipment to Public Catalog
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- TAB 2: BATCH / MULTIPLE ITEMS REGISTRATION -->
+        <!-- ======================================================== -->
+        <div id="batchItemsSection" class="hidden bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 rounded-2xl p-8 shadow-sm">
+            <form action="/seller/items/batch" method="post" class="space-y-6">
+                
+                <div class="border-b border-mono-200 dark:border-mono-800 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold">Batch Multiple Items Registration</h2>
+                        <p class="text-xs text-mono-500">Register multiple pieces of equipment simultaneously in a single transaction.</p>
+                    </div>
+                    <button type="button" onclick="addBatchRow()" 
+                            class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 flex items-center space-x-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Add Another Item Row</span>
+                    </button>
+                </div>
+
+                <div id="batchRowsContainer" class="space-y-6">
+                    
+                    <!-- Row 1 -->
+                    <div class="batch-row p-6 rounded-xl border border-mono-200 dark:border-mono-800 bg-mono-50 dark:bg-mono-950 relative space-y-4">
+                        <span class="text-xs font-mono font-bold text-mono-400 uppercase">Item Entry #1</span>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-mono text-mono-500 mb-1">Item Title *</label>
+                                <input type="text" name="name[]" required placeholder="Equipment Name"
+                                       class="w-full px-3 py-2 text-xs rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-mono text-mono-500 mb-1">Category (or 'Other') *</label>
+                                <select name="categoryId[]"
+                                        class="w-full px-3 py-2 text-xs rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Cat</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-mono text-mono-500 mb-1">Price/Day (₹) *</label>
+                                    <input type="number" step="0.01" name="pricePerDay[]" required placeholder="100.00"
+                                           class="w-full px-3 py-2 text-xs font-mono rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-mono text-mono-500 mb-1">Units *</label>
+                                    <input type="number" name="quantity[]" value="1" min="1" required
+                                           class="w-full px-3 py-2 text-xs font-mono rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-mono text-mono-500 mb-1">Description (Revealed on Hover) *</label>
+                            <textarea name="description[]" rows="2" required placeholder="Describe technical specifications and package contents..."
+                                      class="w-full px-3 py-2 text-xs rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-mono text-mono-500 mb-1">Identification Tags</label>
+                                <input type="text" name="tags[]" placeholder="e.g. 4K, Pro, Stage"
+                                       class="w-full px-3 py-2 text-xs font-mono rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-mono text-mono-500 mb-1">Photo URLs (Separated by commas or newlines)</label>
+                                <input type="text" name="photosText[]" placeholder="https://example.com/photo1.jpg, https://example.com/photo2.jpg"
+                                       class="w-full px-3 py-2 text-xs font-mono rounded border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="pt-4 border-t border-mono-200 dark:border-mono-800 flex justify-between items-center">
+                    <button type="button" onclick="addBatchRow()" 
+                            class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800">
+                        + Add Another Item
+                    </button>
+                    <button type="submit" 
+                            class="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow-lg">
+                        Publish Batch Fleet to Catalog
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        function switchTab(mode) {
+            const singleTab = document.getElementById('singleItemSection');
+            const batchTab = document.getElementById('batchItemsSection');
+            const singleBtn = document.getElementById('tabSingleBtn');
+            const batchBtn = document.getElementById('tabBatchBtn');
+
+            if (mode === 'single') {
+                singleTab.classList.remove('hidden');
+                batchTab.classList.add('hidden');
+                singleBtn.className = "px-4 py-2 rounded-lg bg-white dark:bg-mono-950 text-black dark:text-white shadow-sm transition-all";
+                batchBtn.className = "px-4 py-2 rounded-lg text-mono-600 dark:text-mono-400 hover:text-black dark:hover:text-white transition-all";
+            } else {
+                singleTab.classList.add('hidden');
+                batchTab.classList.remove('hidden');
+                batchBtn.className = "px-4 py-2 rounded-lg bg-white dark:bg-mono-950 text-black dark:text-white shadow-sm transition-all";
+                singleBtn.className = "px-4 py-2 rounded-lg text-mono-600 dark:text-mono-400 hover:text-black dark:hover:text-white transition-all";
+            }
+        }
+
+        let rowCount = 1;
+        function addBatchRow() {
+            rowCount++;
+            const container = document.getElementById('batchRowsContainer');
+            const firstRow = container.querySelector('.batch-row');
+            const clone = firstRow.cloneNode(true);
+            clone.querySelector('span').innerText = `Item Entry #${rowCount}`;
+            // Clear inputs
+            clone.querySelectorAll('input').forEach(i => i.value = '');
+            clone.querySelectorAll('textarea').forEach(t => t.value = '');
+            container.appendChild(clone);
+            lucide.createIcons();
+        }
+    </script>
+
+</body>
+</html>

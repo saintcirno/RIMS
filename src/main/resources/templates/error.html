@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('System Notice')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex items-center justify-center px-4 py-16">
+        <div class="max-w-md w-full text-center p-8 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 shadow-xl">
+            <div class="w-14 h-14 rounded-2xl bg-mono-100 dark:bg-mono-800 text-mono-900 dark:text-mono-100 flex items-center justify-center mx-auto mb-4 border border-mono-200 dark:border-mono-700">
+                <i data-lucide="alert-triangle" class="w-7 h-7"></i>
+            </div>
+            
+            <div class="text-[10px] font-mono uppercase tracking-widest text-mono-500 mb-1">HTTP 500 &bull; Exception Handled</div>
+            <h1 class="text-2xl font-black tracking-tight mb-2">Something went wrong</h1>
+            <p class="text-xs text-mono-600 dark:text-mono-400 mb-6 leading-relaxed" 
+               th:text="${errorMessage}">An unexpected system condition occurred while processing this request.</p>
+
+            <div class="p-3 rounded-lg bg-mono-50 dark:bg-mono-950 border border-mono-200 dark:border-mono-800 text-left mb-6 font-mono text-[11px] text-mono-500 overflow-x-auto">
+                <div>Path: <span class="text-mono-800 dark:text-mono-200" th:text="${requestUri ?: 'Unknown'}">/path</span></div>
+                <div>Time: <span class="text-mono-800 dark:text-mono-200" th:text="${timestamp ?: #temporals.format(#temporals.createNow(), 'yyyy-MM-dd HH:mm')}">Timestamp</span></div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="/items" class="flex-1 py-2.5 px-4 rounded-xl bg-black dark:bg-white text-white dark:text-black text-xs font-semibold hover:opacity-90 transition-opacity">
+                    Return to Catalog
+                </a>
+                <a href="/" class="flex-1 py-2.5 px-4 rounded-xl border border-mono-300 dark:border-mono-700 text-xs font-semibold hover:bg-mono-100 dark:hover:bg-mono-800 transition-colors">
+                    Home Portal
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+</body>
+</html>

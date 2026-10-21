@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Institutional Seller Registration')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-16">
+        <div class="w-full max-w-xl p-8 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-2xl">
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center mx-auto mb-3 shadow">
+                    <i data-lucide="building" class="w-6 h-6"></i>
+                </div>
+                <div class="text-[11px] font-mono uppercase tracking-widest text-mono-500">Institution & Fleet Onboarding</div>
+                <h1 class="text-2xl font-extrabold tracking-tight mt-1">Register Seller Organization</h1>
+                <p class="text-xs text-mono-500 mt-1">List your machinery, audio/visual gear, or tools for verified rentals</p>
+            </div>
+
+            <form action="/register/seller" method="post" class="space-y-4">
+                
+                <div>
+                    <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Organization / Institution Name *</label>
+                    <input type="text" name="organizationName" required placeholder="e.g. Apex Studio Cine & Labs Inc."
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Registration / Tax ID</label>
+                        <input type="text" name="registrationId" placeholder="e.g. EIN-88219-X"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Authorized Contact Officer *</label>
+                        <input type="text" name="name" required placeholder="e.g. Marcus Vance"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Official Email Address *</label>
+                        <input type="email" name="email" required placeholder="dispatch@org.com"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Password *</label>
+                        <input type="password" name="password" required placeholder="Create portal password"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Dispatch Phone</label>
+                        <input type="text" name="phone" placeholder="+91 98201 54321"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Equipment Depot / Facility Address</label>
+                        <input type="text" name="address" placeholder="e.g. Film City Complex, Goregaon, Mumbai"
+                               class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow">
+                    Register Institution & Launch Seller Hub
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-mono-200 dark:border-mono-800 text-center text-xs">
+                <span class="text-mono-500">Already registered as an institutional seller?</span>
+                <a href="/login/seller" class="font-bold underline ml-1 hover:text-black dark:hover:text-white">Sign In to Seller Hub</a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

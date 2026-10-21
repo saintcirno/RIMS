@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Rental Receipt & Asset Tracking')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        
+        <!-- Booking Confirmation Banner -->
+        <div class="mb-8 p-8 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-2xl relative overflow-hidden">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-mono-200 dark:border-mono-800 pb-6 mb-6">
+                <div>
+                    <span th:if="${order.status == 'RETURNED'}" 
+                          class="inline-block px-2.5 py-1 rounded text-[10px] font-mono uppercase font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 mb-2">
+                        ✓ Gear Returned &bull; Deposit Released
+                    </span>
+                    <span th:if="${order.status == 'RETURN_REQUESTED'}" 
+                          class="inline-block px-2.5 py-1 rounded text-[10px] font-mono uppercase font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 mb-2">
+                        Return Initiated &bull; In Transit / Inspection
+                    </span>
+                    <span th:if="${order.status != 'RETURNED' and order.status != 'RETURN_REQUESTED'}" 
+                          class="inline-block px-2.5 py-1 rounded text-[10px] font-mono uppercase font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 mb-2">
+                        Reservation Verified &bull; Active Deployment
+                    </span>
+                    <h1 class="text-3xl font-extrabold tracking-tight">Rental Agreement Confirmation</h1>
+                    <div class="text-xs font-mono text-mono-500 mt-1">
+                        Tracking Reference: <span class="font-bold text-mono-900 dark:text-mono-100" th:text="${order.orderCode}">RIMS-ORD-000</span>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <button onclick="window.print()" class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 inline-flex items-center space-x-1.5">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Print Receipt</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Booking Metadata Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 rounded-xl bg-mono-50 dark:bg-mono-950 border border-mono-200 dark:border-mono-800 font-mono text-xs mb-6">
+                <div>
+                    <span class="text-mono-400 text-[10px] block">Start Date</span>
+                    <span class="font-bold text-mono-900 dark:text-mono-100" th:text="${order.rentalStartDate}">2026-10-08</span>
+                </div>
+                <div>
+                    <span class="text-mono-400 text-[10px] block">Return Deadline</span>
+                    <span class="font-bold text-mono-900 dark:text-mono-100" th:text="${order.rentalEndDate}">2026-10-11</span>
+                </div>
+                <div>
+                    <span class="text-mono-400 text-[10px] block">Rental Charges</span>
+                    <span class="font-bold text-mono-900 dark:text-mono-100">₹<span th:text="${#numbers.formatDecimal(order.rentalFeeTotal != null ? order.rentalFeeTotal : order.totalAmount, 1, 2)}">0.00</span></span>
+                </div>
+                <div>
+                    <span class="text-mono-400 text-[10px] block">Security Deposit</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">₹<span th:text="${#numbers.formatDecimal(order.depositTotal != null ? order.depositTotal : 0, 1, 2)}">0.00</span></span>
+                </div>
+                <div>
+                    <span class="text-mono-400 text-[10px] block">Grand Total Paid</span>
+                    <span class="font-bold text-mono-900 dark:text-mono-100">₹<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}">0.00</span></span>
+                </div>
+            </div>
+
+            <!-- Reserved Items & Serial Codes Ledger -->
+            <div class="space-y-4 mb-6">
+                <h3 class="text-xs font-mono uppercase tracking-wider text-mono-500">Reserved Hardware Units & Identification Codes</h3>
+                
+                <div class="divide-y divide-mono-100 dark:divide-mono-800 border border-mono-200 dark:border-mono-800 rounded-xl overflow-hidden">
+                    <div th:each="line : ${order.items}" class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-mono-900">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono text-xs px-2 py-0.5 rounded bg-black text-white dark:bg-white dark:text-black font-extrabold"
+                                      th:text="${line.itemCodeSnapshot}">RIMS-SKU-001</span>
+                                <h4 class="font-bold text-sm text-mono-900 dark:text-mono-100" th:text="${line.itemNameSnapshot}">Item Name</h4>
+                            </div>
+                            <div class="text-xs text-mono-500 mt-1 flex items-center space-x-4">
+                                <span>Provider: <strong class="text-mono-700 dark:text-mono-300" th:text="${line.seller.organizationName != null ? line.seller.organizationName : line.seller.name}">Seller Org</strong></span>
+                                <span>Phone: <span class="font-mono" th:text="${line.seller.phone != null ? line.seller.phone : 'N/A'}">Phone</span></span>
+                            </div>
+                        </div>
+
+                        <div class="text-right font-mono text-xs space-y-0.5">
+                            <div class="font-bold text-sm text-mono-900 dark:text-mono-100">
+                                ₹<span th:text="${#numbers.formatDecimal(line.subtotal, 1, 2)}">0.00</span>
+                            </div>
+                            <div class="text-[10px] text-mono-500">
+                                Rent: ₹<span th:text="${#numbers.formatDecimal(line.rentalFeeSubtotal != null ? line.rentalFeeSubtotal : line.subtotal, 1, 2)}">0.00</span>
+                            </div>
+                            <div th:if="${line.depositSubtotal != null and line.depositSubtotal.compareTo(T(java.math.BigDecimal).ZERO) > 0}" 
+                                 class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                                +Deposit: ₹<span th:text="${#numbers.formatDecimal(line.depositSubtotal, 1, 2)}">0.00</span> (Held in Escrow)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Razorpay Transaction Settlement Card -->
+            <div class="mb-6 p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-mono-50 dark:bg-mono-950 font-mono text-xs space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-mono-200 dark:border-mono-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                        <span class="font-bold text-mono-900 dark:text-mono-100 uppercase tracking-wider text-[11px]">Razorpay Payment Transaction Ledger</span>
+                    </div>
+                    <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <span>Status:</span>
+                        <span th:text="${order.paymentStatus != null ? order.paymentStatus : 'PAID'}">PAID</span>
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <span class="text-mono-400 text-[10px] block uppercase">Razorpay Payment ID</span>
+                        <span class="font-bold text-mono-900 dark:text-mono-100 break-all select-all" 
+                              th:text="${order.razorpayPaymentId != null ? order.razorpayPaymentId : 'pay_sim_' + order.id}">pay_001</span>
+                    </div>
+                    <div>
+                        <span class="text-mono-400 text-[10px] block uppercase">Razorpay Order ID</span>
+                        <span class="font-bold text-mono-900 dark:text-mono-100 break-all select-all" 
+                              th:text="${order.razorpayOrderId != null ? order.razorpayOrderId : 'order_sim_' + order.id}">order_001</span>
+                    </div>
+                    <div>
+                        <span class="text-mono-400 text-[10px] block uppercase">Payment Method</span>
+                        <span class="font-bold text-mono-900 dark:text-mono-100" 
+                              th:text="${order.paymentMethod != null ? order.paymentMethod : 'RAZORPAY'}">RAZORPAY</span>
+                    </div>
+                    <div>
+                        <span class="text-mono-400 text-[10px] block uppercase">Settled At</span>
+                        <span class="text-mono-700 dark:text-mono-300" 
+                              th:text="${order.paidAt != null ? #temporals.format(order.paidAt, 'yyyy-MM-dd HH:mm') : #temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">Date</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site / Delivery notes -->
+            <div th:if="${order.notes != null && !order.notes.isBlank()}" 
+                 class="p-4 rounded-xl border border-mono-200 dark:border-mono-800 bg-mono-50 dark:bg-mono-950 text-xs mb-6">
+                <span class="text-mono-400 font-mono text-[10px] uppercase block mb-1">Dispatch Instructions & Site Notes</span>
+                <p class="text-mono-700 dark:text-mono-300 whitespace-pre-line" th:text="${order.notes}">Notes</p>
+            </div>
+
+            <!-- Equipment Return Handover Section -->
+            <!-- If Return is Pending/Not yet initiated -->
+            <div id="returnSection" th:if="${order.status != 'RETURNED' and order.status != 'RETURN_REQUESTED'}" 
+                 class="mb-6 p-6 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-md">
+                <div class="flex items-center space-x-2 mb-2">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <h3 class="font-bold text-xs uppercase font-mono tracking-wider">Equipment Return Handover</h3>
+                </div>
+                <p class="text-xs text-mono-500 mb-4 leading-relaxed">
+                    Finished your production or job? Click below to initiate equipment return. Once the vendor inspects the physical serial tags and confirms inventory check-in, your security deposit held in escrow (<strong class="text-mono-900 dark:text-mono-100">₹<span th:text="${#numbers.formatDecimal(order.depositTotal != null ? order.depositTotal : 0, 1, 2)}">0.00</span></strong>) will be released.
+                </p>
+                <form th:action="@{'/buyer/orders/' + ${order.id} + '/return'}" method="post" class="space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-mono-500 mb-1">Return Handover / Courier Waybill / Drop-off Details (Optional):</label>
+                        <textarea name="returnNotes" rows="2" placeholder="e.g. Dispatched in original flight cases via BlueDart AWB #982145 / Handed over directly at Mumbai studio depot."
+                                  class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"></textarea>
+                    </div>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-black text-white dark:bg-white dark:text-black font-bold uppercase tracking-wider text-xs hover:opacity-90 shadow-md inline-flex items-center space-x-2">
+                        <i data-lucide="package-check" class="w-4 h-4"></i>
+                        <span>Initiate Equipment Return</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- If Return is in progress -->
+            <div id="returnSection" th:if="${order.status == 'RETURN_REQUESTED'}" 
+                 class="mb-6 p-5 rounded-2xl border border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40 text-xs font-mono space-y-2">
+                <div class="flex items-center space-x-2 text-amber-900 dark:text-amber-200 font-bold">
+                    <i data-lucide="clock" class="w-4 h-4 text-amber-600"></i>
+                    <span class="text-xs uppercase tracking-wider">Return In Progress &bull; Awaiting Vendor Check-in</span>
+                </div>
+                <p class="text-mono-600 dark:text-mono-400">
+                    You initiated return for this equipment reservation<span th:if="${order.returnInitiatedAt != null}"> on <strong th:text="${#temporals.format(order.returnInitiatedAt, 'dd MMM yyyy, HH:mm')}">Date</strong></span>. The equipment provider will verify the serial tags and check the items back into inventory stock.
+                </p>
+                <div th:if="${order.returnNotes != null && !order.returnNotes.isBlank()}" 
+                     class="p-2.5 rounded-lg bg-white/70 dark:bg-mono-900/70 border border-amber-200 dark:border-amber-900 text-[11px] text-mono-700 dark:text-mono-300">
+                    <strong>Handover Notes:</strong> <span th:text="${order.returnNotes}">Notes</span>
+                </div>
+            </div>
+
+            <!-- If Return is Completed -->
+            <div id="returnSection" th:if="${order.status == 'RETURNED'}" 
+                 class="mb-6 p-5 rounded-2xl border border-blue-300 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/40 text-xs font-mono space-y-2">
+                <div class="flex items-center space-x-2 text-blue-900 dark:text-blue-200 font-bold">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
+                    <span class="text-xs uppercase tracking-wider">Equipment Return Verified & Completed</span>
+                </div>
+                <p class="text-mono-600 dark:text-mono-400">
+                    The equipment provider checked in and verified the hardware units<span th:if="${order.returnedAt != null}"> on <strong th:text="${#temporals.format(order.returnedAt, 'dd MMM yyyy, HH:mm')}">Date</strong></span>. Available inventory has been restocked and your security deposit held in escrow has been released.
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-4 border-t border-mono-200 dark:border-mono-800">
+                <a href="/buyer/dashboard" class="font-bold hover:underline flex items-center space-x-1">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                    <span>Back to Customer Dashboard</span>
+                </a>
+                <a href="/items" class="text-mono-500 hover:text-black dark:hover:text-white">
+                    Rent More Equipment &rarr;
+                </a>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script th:if="${successOrder}">
+        // Launch celebration confetti
+        window.addEventListener('DOMContentLoaded', () => {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#000000', '#71717a', '#ffffff']
+            });
+        });
+    </script>
+
+</body>
+</html>

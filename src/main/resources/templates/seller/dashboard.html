@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Seller Hub Dashboard')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <!-- Welcome Banner -->
+        <div class="mb-8 p-6 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center space-x-1.5 text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">
+                    <i data-lucide="building" class="w-3.5 h-3.5"></i>
+                    <span th:text="${seller.organizationName != null ? seller.organizationName : 'Institutional Provider'}">Apex Cine</span>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight">Seller Operations Command</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">
+                    Authorized Representative: <span class="text-mono-900 dark:text-mono-100 font-bold" th:text="${seller.name}">Name</span> 
+                    &bull; ID: <span class="font-mono" th:text="${seller.registrationId != null ? seller.registrationId : 'CERT-REG'}">REG</span>
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <a href="/seller/items/new" class="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 flex items-center space-x-1.5 shadow-md">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Register Equipment</span>
+                </a>
+                <a href="/seller/rentals" class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 flex items-center space-x-1.5">
+                    <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                    <span>Client Rental Ledger</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <span class="text-xs font-mono uppercase text-mono-500 block mb-1">Total Listed Hardware</span>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${totalItemsCount}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Catalog inventory count</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <span class="text-xs font-mono uppercase text-mono-500 block mb-1">Active Public Items</span>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${activeItemsCount}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Deployable now</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <span class="text-xs font-mono uppercase text-mono-500 block mb-1">Rented Orders Count</span>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${totalRentalsCount}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Client deployments</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <span class="text-xs font-mono uppercase text-mono-500 block mb-1">Revenue Generated</span>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono">
+                    ₹<span th:text="${#numbers.formatDecimal(totalRevenue, 1, 2)}">0.00</span>
+                </div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Gross contract turnover</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Recent Inventory Table (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+                    <div class="p-5 border-b border-mono-200 dark:border-mono-800 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-mono-900 dark:text-mono-100">Equipment Fleet</h3>
+                            <p class="text-xs text-mono-500">Track unique IDs, rate, and public visibility</p>
+                        </div>
+                        <a href="/seller/items" class="text-xs font-semibold hover:underline">View All Fleet &rarr;</a>
+                    </div>
+
+                    <div th:if="${items.isEmpty()}" class="p-8 text-center text-xs text-mono-500">
+                        No equipment registered yet.
+                    </div>
+
+                    <div th:unless="${items.isEmpty()}" class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                                <tr>
+                                    <th class="px-4 py-2.5">Asset Code</th>
+                                    <th class="px-4 py-2.5">Name</th>
+                                    <th class="px-4 py-2.5">Rate</th>
+                                    <th class="px-4 py-2.5">Units</th>
+                                    <th class="px-4 py-2.5">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-mono-100 dark:divide-mono-800">
+                                <tr th:each="i : ${items}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40">
+                                    <td class="px-4 py-3 font-mono font-bold" th:text="${i.itemCode}">SKU-001</td>
+                                    <td class="px-4 py-3 font-medium truncate max-w-[160px]" th:text="${i.name}">Product</td>
+                                    <td class="px-4 py-3 font-mono">₹<span th:text="${i.pricePerDay}">0</span>/d</td>
+                                    <td class="px-4 py-3 font-mono" th:text="${i.availableQuantity}">1</td>
+                                    <td class="px-4 py-3">
+                                        <span th:if="${i.active}" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Active</span>
+                                        <span th:unless="${i.active}" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-mono-200 text-mono-600 dark:bg-mono-800 dark:text-mono-400">Offline</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Rentals & Who Rented What (5 cols) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+                    <div class="p-5 border-b border-mono-200 dark:border-mono-800 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-mono-900 dark:text-mono-100">Client Rentals Ledger</h3>
+                            <p class="text-xs text-mono-500">Who rented which product for future reference</p>
+                        </div>
+                        <a href="/seller/rentals" class="text-xs font-semibold hover:underline">Full Log &rarr;</a>
+                    </div>
+
+                    <div th:if="${recentRentals.isEmpty()}" class="p-8 text-center text-xs text-mono-500">
+                        No client rentals recorded yet.
+                    </div>
+
+                    <div th:unless="${recentRentals.isEmpty()}" class="divide-y divide-mono-100 dark:divide-mono-800">
+                        <div th:each="r : ${recentRentals}" class="p-4 text-xs space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-mono-100 dark:bg-mono-800"
+                                      th:text="${r.itemCodeSnapshot}">SKU-001</span>
+                                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                    +₹<span th:text="${#numbers.formatDecimal(r.subtotal, 1, 2)}">0.00</span>
+                                </span>
+                            </div>
+                            <div class="font-bold text-mono-900 dark:text-mono-100" th:text="${r.itemNameSnapshot}">Item Name</div>
+                            <div class="text-mono-500 flex items-center justify-between text-[11px] pt-1">
+                                <span>Client: <strong class="text-mono-700 dark:text-mono-300" th:text="${r.order.buyer.name}">Client</strong></span>
+                                <div class="flex items-center space-x-2">
+                                    <span th:if="${r.returned or r.order.status == 'RETURNED'}" class="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-semibold">
+                                        ✓ Restocked
+                                    </span>
+                                    <form th:if="${!r.returned and r.order.status == 'RETURN_REQUESTED'}" 
+                                          th:action="@{'/seller/rentals/' + ${r.id} + '/return'}" method="post" class="inline">
+                                        <button type="submit" class="px-2 py-0.5 rounded bg-black text-white dark:bg-white dark:text-black font-mono text-[9px] font-bold uppercase hover:opacity-90 shadow">
+                                            Restock (+<span th:text="${r.quantity}">1</span>)
+                                        </button>
+                                    </form>
+                                    <span class="font-mono" th:text="${r.order.orderCode}">ORD-001</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

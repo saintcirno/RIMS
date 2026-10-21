@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="relative overflow-hidden py-20 lg:py-28 border-b border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-950">
+            <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 text-center relative z-10">
+                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-black dark:text-white max-w-5xl mx-auto leading-tight">
+                    Rental Item Management System
+                </h1>
+                
+                <p class="mt-6 text-base sm:text-lg text-mono-600 dark:text-mono-400 max-w-3xl mx-auto leading-relaxed">
+                    Access certified cameras, industrial machinery, concert staging, and heavy equipment with serial-tracked unique IDs and real-time availability.
+                </p>
+
+                <!-- Search and Action Bar -->
+                <div class="mt-8 max-w-2xl mx-auto">
+                    <form action="/items" method="get" class="flex items-center rounded-xl p-1.5 border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-2xl">
+                        <i data-lucide="search" class="w-5 h-5 ml-3 text-mono-400"></i>
+                        <input type="text" name="q" placeholder="Search by item, SKU code, or tag..." 
+                               class="w-full px-3 py-2 text-sm bg-transparent focus:outline-none placeholder-mono-400">
+                        <button type="submit" class="px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90">
+                            Search
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Fast Category Shortcuts -->
+                <div class="mt-8 flex flex-wrap justify-center gap-2 text-xs">
+                    <span class="text-mono-500 py-1 font-mono">Popular:</span>
+                    <a href="/items?tag=8K" class="px-3 py-1 rounded-full border border-mono-200 dark:border-mono-800 hover:border-black dark:hover:border-white">#8K-Cinema</a>
+                    <a href="/items?tag=Excavator" class="px-3 py-1 rounded-full border border-mono-200 dark:border-mono-800 hover:border-black dark:hover:border-white">#Excavator</a>
+                    <a href="/items?tag=Lighting" class="px-3 py-1 rounded-full border border-mono-200 dark:border-mono-800 hover:border-black dark:hover:border-white">#Studio-Lights</a>
+                    <a href="/items?tag=Drone" class="px-3 py-1 rounded-full border border-mono-200 dark:border-mono-800 hover:border-black dark:hover:border-white">#Inspection-Drones</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Category Grid Section -->
+        <section class="py-16 w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14">
+            <div class="flex items-end justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-mono-900 dark:text-mono-100 tracking-tight">Explore Equipment Categories</h2>
+                    <p class="text-xs text-mono-500 font-mono mt-1">Browse verified institutional assets organized by operational discipline</p>
+                </div>
+                <a href="/items" class="text-xs font-semibold hover:underline flex items-center space-x-1">
+                    <span>View All</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <a th:each="cat : ${categories}" th:href="@{/items(category=${cat.slug})}"
+                   class="group p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 hover:border-black dark:hover:border-white hover:shadow-lg transition-all duration-300">
+                    <div class="w-10 h-10 rounded-lg bg-mono-100 dark:bg-mono-800 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-all">
+                        <i th:attr="data-lucide=${cat.icon != null ? cat.icon : 'package'}" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-sm text-mono-900 dark:text-mono-100 mb-1" th:text="${cat.name}">Category</h3>
+                    <p class="text-[11px] text-mono-500 line-clamp-2" th:text="${cat.description}">Description text...</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Featured Items with Hover Reveal -->
+        <section class="py-12 bg-mono-100/50 dark:bg-mono-900/30 border-y border-mono-200 dark:border-mono-800">
+            <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <div class="inline-flex items-center space-x-1.5 text-xs font-mono uppercase text-mono-500 mb-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-mono-400"></i>
+                            <span>Interactive Catalog</span>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-mono-900 dark:text-mono-100 tracking-tight">Available Premium Rentals</h2>
+                        <p class="text-xs text-mono-500 mt-0.5">Hover your mouse over any item card to reveal its full description, seller institution, and specs.</p>
+                    </div>
+                    <a href="/items" class="hidden sm:inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors">
+                        <span>Browse Catalog</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                    <div th:each="item : ${featuredItems}">
+                        <div th:replace="~{fragments/item-card :: card(${item})}"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Client Rentals Ledger')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-8">
+            <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                <a href="/seller/dashboard" class="hover:underline">Seller Hub</a>
+                <span>/</span>
+                <span class="text-mono-900 dark:text-mono-100">Client Rentals Ledger</span>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Client Rental Deployments & Audit</h1>
+            <p class="text-xs text-mono-500 font-mono mt-0.5">Permanent record of which client leased which unique serial ID item for historical references</p>
+        </div>
+
+        <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+            
+            <div th:if="${rentals.isEmpty()}" class="p-16 text-center">
+                <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto text-mono-400 mb-3"></i>
+                <h3 class="text-base font-bold">No rental history yet</h3>
+                <p class="text-xs text-mono-500 mt-1 max-w-sm mx-auto">When customers book your registered equipment, their contact details and asset serial records will be logged here.</p>
+            </div>
+
+            <div th:unless="${rentals.isEmpty()}" class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                        <tr>
+                            <th class="px-4 py-3">Booking Code</th>
+                            <th class="px-4 py-3">Asset Serial Code</th>
+                            <th class="px-4 py-3">Rented Item Name</th>
+                            <th class="px-4 py-3">Customer / Lessee</th>
+                            <th class="px-4 py-3">Rental Window</th>
+                            <th class="px-4 py-3 text-center">Units</th>
+                            <th class="px-4 py-3 text-right">Revenue</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3 text-right">Inventory Restock Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-mono-100 dark:divide-mono-800">
+                        <tr th:each="r : ${rentals}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40 transition-colors">
+                            <td class="px-4 py-4 font-mono font-bold" th:text="${r.order.orderCode}">ORD-001</td>
+                            <td class="px-4 py-4 font-mono">
+                                <span class="px-2 py-0.5 rounded bg-black text-white dark:bg-white dark:text-black font-extrabold text-[11px]"
+                                      th:text="${r.itemCodeSnapshot}">RIMS-CINE-8001</span>
+                            </td>
+                            <td class="px-4 py-4 font-semibold text-mono-900 dark:text-mono-100" th:text="${r.itemNameSnapshot}">
+                                RED V-Raptor
+                            </td>
+                            <td class="px-4 py-4">
+                                <span class="font-bold block" th:text="${r.order.buyer.name}">Customer Name</span>
+                                <span class="text-mono-400 text-[10px] font-mono" th:text="${r.order.buyer.phone != null ? r.order.buyer.phone : r.order.buyer.email}">+91-98765-00000</span>
+                            </td>
+                            <td class="px-4 py-4 font-mono text-mono-500">
+                                <span th:text="${r.order.rentalStartDate}">2026-10-08</span> &rarr;
+                                <span th:text="${r.order.rentalEndDate}">2026-10-11</span>
+                                <span class="block text-[10px] text-mono-400" th:text="'(' + ${r.order.rentalDays} + ' Days)'">(3 Days)</span>
+                            </td>
+                            <td class="px-4 py-4 font-mono font-bold text-center" th:text="${r.quantity}">1</td>
+                            <td class="px-4 py-4 font-mono font-bold text-right text-xs">
+                                <div class="text-emerald-600 dark:text-emerald-400">
+                                    +₹<span th:text="${#numbers.formatDecimal(r.subtotal, 1, 2)}">150.00</span>
+                                </div>
+                                <div th:if="${r.depositSubtotal != null and r.depositSubtotal.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-[9px] text-mono-400 font-mono">
+                                    (₹<span th:text="${#numbers.formatDecimal(r.depositSubtotal, 1, 2)}">0</span> deposit in escrow)
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 text-center">
+                                <span th:if="${r.returned or r.order.status == 'RETURNED'}" 
+                                      class="px-2 py-0.5 rounded bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-200 font-mono text-[10px] font-bold inline-block">
+                                    ✓ RETURNED
+                                </span>
+                                <span th:if="${!r.returned and r.order.status == 'RETURN_REQUESTED'}" 
+                                      class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 font-mono text-[10px] font-bold inline-block animate-pulse">
+                                    RETURN INITIATED
+                                </span>
+                                <span th:if="${!r.returned and r.order.status != 'RETURNED' and r.order.status != 'RETURN_REQUESTED'}" 
+                                      class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 font-mono text-[10px] font-bold inline-block">
+                                    DEPLOYED
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 text-right">
+                                <!-- If already returned -->
+                                <div th:if="${r.returned or r.order.status == 'RETURNED'}" class="inline-flex flex-col items-end">
+                                    <span class="px-2 py-0.5 rounded bg-mono-100 dark:bg-mono-800 text-mono-600 dark:text-mono-300 font-mono text-[10px] font-semibold">
+                                        ✓ Restocked to Fleet
+                                    </span>
+                                    <span class="text-[9px] text-mono-400 font-mono mt-0.5" th:if="${r.returnedAt != null}">
+                                        <span th:text="${#temporals.format(r.returnedAt, 'dd MMM HH:mm')}">Date</span>
+                                    </span>
+                                </div>
+
+                                <!-- If return requested by client -->
+                                <div th:if="${!r.returned and r.order.status == 'RETURN_REQUESTED'}">
+                                    <form th:action="@{'/seller/rentals/' + ${r.id} + '/return'}" method="post">
+                                        <button type="submit" 
+                                                class="px-3 py-1.5 rounded-lg bg-black text-white dark:bg-white dark:text-black font-mono text-[10px] font-bold uppercase hover:opacity-90 inline-flex items-center space-x-1 shadow-md">
+                                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                            <span>Check-in & Restock (+<span th:text="${r.quantity}">1</span>)</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- If still active, seller can check in -->
+                                <div th:if="${!r.returned and r.order.status != 'RETURNED' and r.order.status != 'RETURN_REQUESTED'}">
+                                    <form th:action="@{'/seller/rentals/' + ${r.id} + '/return'}" method="post"
+                                          onsubmit="return confirm('Confirm hardware unit check-in? This will mark the asset as returned and restore available stock in inventory.');">
+                                        <button type="submit" 
+                                                class="px-2.5 py-1 rounded-lg border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 font-mono text-[10px] font-semibold inline-flex items-center space-x-1">
+                                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                                            <span>Mark Returned (+<span th:text="${r.quantity}">1</span>)</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

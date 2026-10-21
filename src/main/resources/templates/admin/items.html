@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Moderate Registered Equipment')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                    <a href="/admin/dashboard" class="hover:underline">SUDO Command</a>
+                    <span>/</span>
+                    <span class="text-mono-900 dark:text-mono-100">Equipment Moderation</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Platform Equipment Moderation</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">
+                    Inspect and remove any registered hardware or inappropriate listings across all seller institutions
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <a href="/admin/users" 
+                   class="px-4 py-2 rounded-lg text-xs font-semibold border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800">
+                    &larr; Inspect User Records
+                </a>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+            <div class="p-4 bg-mono-100/60 dark:bg-mono-950/60 border-b border-mono-200 dark:border-mono-800 flex items-center justify-between text-xs font-mono">
+                <span class="text-mono-500">SQL TABLE: <code class="text-mono-900 dark:text-mono-100 font-bold">PUBLIC.ITEMS</code></span>
+                <span class="text-mono-500"><strong class="text-mono-900 dark:text-mono-100" th:text="${items.size()}">0</strong> Registered Items</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                        <tr>
+                            <th class="px-5 py-3">Photo</th>
+                            <th class="px-5 py-3">Tracking Code (Unique ID)</th>
+                            <th class="px-5 py-3">Equipment Name</th>
+                            <th class="px-5 py-3">Seller Institution</th>
+                            <th class="px-5 py-3">Category</th>
+                            <th class="px-5 py-3">Rate</th>
+                            <th class="px-5 py-3">Status</th>
+                            <th class="px-5 py-3 text-right">Moderation Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-mono-100 dark:divide-mono-800">
+                        <tr th:each="i : ${items}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40 transition-colors">
+                            <td class="px-5 py-3">
+                                <img th:src="${i.primaryImageUrl}" th:alt="${i.name}" 
+                                     class="w-12 h-12 rounded-lg object-cover bg-mono-100 dark:bg-mono-800">
+                            </td>
+                            <td class="px-5 py-3 font-mono font-bold text-mono-900 dark:text-mono-100" th:text="${i.itemCode}">
+                                RIMS-001
+                            </td>
+                            <td class="px-5 py-3 font-semibold">
+                                <a th:href="@{'/items/' + ${i.id}}" target="_blank" class="hover:underline text-mono-900 dark:text-mono-100" th:text="${i.name}">
+                                    Item Name
+                                </a>
+                                <div class="text-[11px] text-mono-400 font-normal line-clamp-1" th:text="${i.description}">Desc</div>
+                            </td>
+                            <td class="px-5 py-3 text-mono-700 dark:text-mono-300">
+                                <div class="font-bold" th:text="${i.seller.organizationName != null ? i.seller.organizationName : i.seller.name}">Seller Org</div>
+                                <div class="text-[10px] font-mono text-mono-400" th:text="${i.seller.email}">email</div>
+                            </td>
+                            <td class="px-5 py-3 text-mono-500" th:text="${i.category.name}">Category</td>
+                            <td class="px-5 py-3 font-mono font-bold">
+                                ₹<span th:text="${#numbers.formatDecimal(i.pricePerDay, 1, 2)}">100.00</span>/d
+                            </td>
+                            <td class="px-5 py-3">
+                                <span th:if="${i.active}" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                    ONLINE
+                                </span>
+                                <span th:unless="${i.active}" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                                    DELISTED / REMOVED
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <!-- Delist / Remove Button -->
+                                    <form th:if="${i.active}" th:action="@{'/admin/items/' + ${i.id} + '/remove'}" method="post" class="inline">
+                                        <button type="submit" onclick="return confirm('Are you sure you want to delist this item from public view?')"
+                                                class="px-2.5 py-1 rounded text-[11px] font-bold bg-mono-900 text-white dark:bg-white dark:text-black hover:opacity-80 transition-opacity">
+                                            Remove Item
+                                        </button>
+                                    </form>
+
+                                    <!-- Permanent Delete Button -->
+                                    <form th:action="@{'/admin/items/' + ${i.id} + '/delete-permanent'}" method="post" class="inline">
+                                        <button type="submit" onclick="return confirm('Permanently purge this item and photos from database?')"
+                                                class="p-1 rounded text-mono-400 hover:text-red-500 transition-colors" title="Purge Record">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

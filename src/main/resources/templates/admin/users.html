@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Database User Registry')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-1">
+                    <a href="/admin/dashboard" class="hover:underline">SUDO Command</a>
+                    <span>/</span>
+                    <span class="text-mono-900 dark:text-mono-100">Database User Registry</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Registered Users Master Directory</h1>
+                <p class="text-xs text-mono-500 font-mono mt-0.5">
+                    Complete SQL database audit of all registered users: credentials, passwords, contact details, and institutional data
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleAllPasswords()" id="togglePwdBtn"
+                        class="px-3.5 py-2 rounded-lg text-xs font-mono border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 flex items-center space-x-1.5">
+                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                    <span>Toggle Passwords Plaintext</span>
+                </button>
+                <a href="/admin/items" 
+                   class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90">
+                    Moderate Equipment &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden shadow-sm">
+            <div class="p-4 bg-mono-100/60 dark:bg-mono-950/60 border-b border-mono-200 dark:border-mono-800 flex items-center justify-between text-xs font-mono">
+                <span class="text-mono-500">SQL TABLE: <code class="text-mono-900 dark:text-mono-100 font-bold">PUBLIC.USERS</code></span>
+                <span class="text-mono-500"><strong class="text-mono-900 dark:text-mono-100" th:text="${users.size()}">0</strong> Records Found</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-mono-50 dark:bg-mono-950 border-b border-mono-200 dark:border-mono-800 font-mono uppercase text-mono-500 text-[10px]">
+                        <tr>
+                            <th class="px-4 py-3">UID</th>
+                            <th class="px-4 py-3">Role</th>
+                            <th class="px-4 py-3">Full Name</th>
+                            <th class="px-4 py-3">Email Address</th>
+                            <th class="px-4 py-3 bg-mono-100/40 dark:bg-mono-800/40 text-mono-900 dark:text-mono-100 font-bold">
+                                Password (DB Record)
+                            </th>
+                            <th class="px-4 py-3">Organization / Institution</th>
+                            <th class="px-4 py-3">Registration ID</th>
+                            <th class="px-4 py-3">Phone</th>
+                            <th class="px-4 py-3">Address</th>
+                            <th class="px-4 py-3">Created Date</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-mono-100 dark:divide-mono-800 font-mono text-[11px]">
+                        <tr th:each="u : ${users}" class="hover:bg-mono-50 dark:hover:bg-mono-800/40 transition-colors">
+                            <td class="px-4 py-3 font-bold text-mono-500" th:text="${'#' + u.id}">#1</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                      th:classappend="${u.admin ? 'bg-black text-white dark:bg-white dark:text-black' : (u.seller ? 'bg-mono-200 text-mono-800 dark:bg-mono-800 dark:text-mono-200' : 'bg-mono-100 text-mono-700 dark:bg-mono-900 dark:text-mono-300')}"
+                                      th:text="${u.role}">ROLE</span>
+                            </td>
+                            <td class="px-4 py-3 font-sans font-bold text-mono-900 dark:text-mono-100" th:text="${u.name}">User Name</td>
+                            <td class="px-4 py-3 text-mono-700 dark:text-mono-300" th:text="${u.email}">email@domain.com</td>
+                            
+                            <!-- Stored Password (Requested by User) -->
+                            <td class="px-4 py-3 bg-mono-100/40 dark:bg-mono-800/40">
+                                <span class="pwd-val font-bold px-2 py-0.5 rounded bg-white dark:bg-mono-950 border border-mono-300 dark:border-mono-700 text-mono-900 dark:text-mono-100 shadow-sm"
+                                      th:text="${u.password}">password123</span>
+                            </td>
+
+                            <td class="px-4 py-3 font-sans" th:text="${u.organizationName != null ? u.organizationName : '-'}">-</td>
+                            <td class="px-4 py-3" th:text="${u.registrationId != null ? u.registrationId : '-'}">-</td>
+                            <td class="px-4 py-3" th:text="${u.phone != null ? u.phone : '-'}">-</td>
+                            <td class="px-4 py-3 font-sans truncate max-w-[150px]" th:text="${u.address != null ? u.address : '-'}">-</td>
+                            <td class="px-4 py-3 text-mono-400" th:text="${#temporals.format(u.createdAt, 'yyyy-MM-dd HH:mm')}">Date</td>
+                            <td class="px-4 py-3">
+                                <span th:if="${u.active}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                    ACTIVE
+                                </span>
+                                <span th:unless="${u.active}" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                                    SUSPENDED
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <form th:if="${!u.admin}" th:action="@{'/admin/users/' + ${u.id} + '/toggle'}" method="post" class="inline">
+                                    <button type="submit" 
+                                            class="px-2 py-1 rounded border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-800 text-[10px]">
+                                        <span th:text="${u.active ? 'Suspend' : 'Reinstate'}">Toggle</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+    <script>
+        let passwordsVisible = true;
+        function toggleAllPasswords() {
+            passwordsVisible = !passwordsVisible;
+            document.querySelectorAll('.pwd-val').forEach(el => {
+                if (passwordsVisible) {
+                    el.style.filter = 'none';
+                } else {
+                    el.style.filter = 'blur(4px)';
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

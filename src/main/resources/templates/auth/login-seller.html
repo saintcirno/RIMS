@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Seller Hub Login')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-16">
+        <div class="w-full max-w-md p-8 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-2xl">
+            
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center mx-auto mb-3 shadow">
+                    <i data-lucide="store" class="w-6 h-6"></i>
+                </div>
+                <div class="text-[11px] font-mono uppercase tracking-widest text-mono-500">Dedicated Portal</div>
+                <h1 class="text-2xl font-extrabold tracking-tight mt-1">Institutional Seller Login</h1>
+                <p class="text-xs text-mono-500 mt-1">Access fleet inventory management, item registration, and rental logs</p>
+            </div>
+
+            <!-- Login Form -->
+            <form action="/login/seller" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-mono uppercase tracking-wider text-mono-500 mb-1">Organization / Officer Email</label>
+                    <input type="email" name="email" value="seller@apexcine.com" required
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-mono uppercase tracking-wider text-mono-500">Password</label>
+                    </div>
+                    <input type="password" name="password" value="seller123" required
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                </div>
+
+                <button type="submit" 
+                        class="w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow">
+                    Sign In to Seller Hub
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-mono-200 dark:border-mono-800 text-center space-y-3 text-xs">
+                <div>
+                    <span class="text-mono-500">Are you a new equipment provider?</span>
+                    <a href="/register/seller" class="font-bold underline ml-1 hover:text-black dark:hover:text-white">Register Organization</a>
+                </div>
+
+                <div class="pt-2 text-[11px] font-mono text-mono-500 flex justify-center space-x-3">
+                    <a href="/login/buyer" class="hover:underline">&larr; Customer Portal</a>
+                    <span>&bull;</span>
+                    <a href="/login/admin" class="hover:underline">SUDO Admin &rarr;</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('SUDO Admin Command Center')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <!-- Welcome Admin Banner -->
+        <div class="mb-8 p-6 rounded-2xl border-2 border-black dark:border-white bg-mono-950 text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center space-x-1.5 text-xs font-mono uppercase tracking-widest text-mono-400 mb-1">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-white"></i>
+                    <span>SUDO ROOT COMMAND & CONTROL</span>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight">Super Administrator Terminal</h1>
+                <p class="text-xs text-mono-400 font-mono mt-0.5">
+                    Authorized Administrator: <span class="text-white font-bold" th:text="${admin.name}">Admin</span> 
+                    &bull; SQL Database: <span class="text-emerald-400">H2 Relational Persistence (ONLINE)</span>
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="/admin/users" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-white text-black hover:bg-mono-200 transition-colors shadow">
+                    Inspect User Records & Passwords
+                </a>
+                <a href="/admin/items" class="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-mono-800 text-white hover:bg-mono-700 transition-colors border border-mono-700">
+                    Remove / Delist Items
+                </a>
+                <a href="/h2-console" target="_blank" class="px-3 py-2 rounded-lg text-xs font-mono border border-mono-700 hover:bg-mono-800 text-mono-300" title="Open Embedded SQL Console">
+                    SQL Console &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <div class="flex items-center justify-between text-mono-500 mb-1">
+                    <span class="text-xs font-mono uppercase">Total Users</span>
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${totalUsers}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Sellers, Buyers & Admins</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <div class="flex items-center justify-between text-mono-500 mb-1">
+                    <span class="text-xs font-mono uppercase">Total Registered Items</span>
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${totalItems}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Across all institutions</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <div class="flex items-center justify-between text-mono-500 mb-1">
+                    <span class="text-xs font-mono uppercase">Total Rental Orders</span>
+                    <i data-lucide="file-check" class="w-4 h-4"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono" th:text="${totalOrders}">0</div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Completed & Active leases</span>
+            </div>
+
+            <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                <div class="flex items-center justify-between text-mono-500 mb-1">
+                    <span class="text-xs font-mono uppercase">Platform Gross Volume</span>
+                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                </div>
+                <div class="text-3xl font-extrabold text-mono-900 dark:text-mono-100 font-mono">
+                    ₹<span th:text="${#numbers.formatDecimal(platformVolume, 1, 2)}">0.00</span>
+                </div>
+                <span class="text-[11px] text-mono-400 mt-1 block">Total transacted turnover</span>
+            </div>
+        </div>
+
+        <!-- Quick Access Shortcuts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            
+            <!-- User Database Quick Preview -->
+            <div class="p-6 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm">Registered Users Directory</h3>
+                        <p class="text-xs text-mono-500">Inspect full database profiles, emails, and passwords</p>
+                    </div>
+                    <a href="/admin/users" class="text-xs font-semibold hover:underline">Full Database &rarr;</a>
+                </div>
+
+                <div class="divide-y divide-mono-100 dark:divide-mono-800 text-xs">
+                    <div th:each="u : ${recentUsers}" class="py-2.5 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-mono-900 dark:text-mono-100" th:text="${u.name}">User Name</div>
+                            <div class="text-mono-500 font-mono text-[11px]" th:text="${u.email}">email@domain.com</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                              th:classappend="${u.admin ? 'bg-black text-white dark:bg-white dark:text-black' : (u.seller ? 'bg-mono-200 text-mono-800 dark:bg-mono-800 dark:text-mono-200' : 'bg-mono-100 text-mono-600 dark:bg-mono-900 dark:text-mono-400')}"
+                              th:text="${u.role}">ROLE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Management Quick Link -->
+            <div class="p-6 rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-sm">Catalog Equipment Moderation</h3>
+                        <p class="text-xs text-mono-500">Remove or delist items deemed unnecessary</p>
+                    </div>
+                    <a href="/admin/items" class="text-xs font-semibold hover:underline">Moderation Hub &rarr;</a>
+                </div>
+
+                <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-mono-50 dark:bg-mono-950 space-y-3 text-xs">
+                    <div class="flex items-center space-x-2 text-mono-900 dark:text-mono-100 font-bold">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Immediate Item Delisting Authority</span>
+                    </div>
+                    <p class="text-mono-500 leading-relaxed text-[11px]">
+                        As SUDO Admin, you can instantly delist or permanently purge any registered product from the marketplace if deemed inappropriate, defective, or unnecessary.
+                    </p>
+                    <a href="/admin/items" class="inline-block px-4 py-2 rounded-lg bg-black text-white dark:bg-white dark:text-black font-bold text-xs">
+                        Open Item Moderation Table
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

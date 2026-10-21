@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Rental Cart')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <div class="mb-6">
+            <h1 class="text-3xl font-extrabold tracking-tight text-mono-900 dark:text-mono-100">Equipment Rental Cart</h1>
+            <p class="text-xs text-mono-500 font-mono mt-1">Review selected hardware, configure durations, and proceed to booking reservation</p>
+        </div>
+
+        <div th:if="${cart.empty}" class="p-16 text-center rounded-2xl border border-dashed border-mono-300 dark:border-mono-800 bg-white dark:bg-mono-900">
+            <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto text-mono-400 mb-3"></i>
+            <h3 class="text-lg font-bold">Your rental cart is empty</h3>
+            <p class="text-xs text-mono-500 mt-1 max-w-sm mx-auto">Explore the catalog to add high-performance cinema, audio, or machinery gear to your cart.</p>
+            <a href="/items" class="mt-4 inline-block px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                Browse Equipment Catalog
+            </a>
+        </div>
+
+        <div th:unless="${cart.empty}" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Cart Items List (8 cols) -->
+            <div class="lg:col-span-8 space-y-4">
+                
+                <div class="rounded-2xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900 overflow-hidden divide-y divide-mono-100 dark:divide-mono-800">
+                    
+                    <div th:each="ci : ${cart.items}" class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        
+                        <!-- Item Image & Info -->
+                        <div class="flex items-center space-x-4">
+                            <img th:src="${ci.item.primaryImageUrl}" th:alt="${ci.item.name}"
+                                 class="w-20 h-20 rounded-xl object-cover bg-mono-100 dark:bg-mono-800 flex-shrink-0">
+                            <div>
+                                <div class="flex items-center space-x-2 text-[10px] font-mono text-mono-500 mb-0.5">
+                                    <span class="px-1.5 py-0.5 rounded bg-mono-100 dark:bg-mono-800 text-mono-800 dark:text-mono-200 font-bold" 
+                                          th:text="${ci.item.itemCode}">SKU-001</span>
+                                    <span>&bull;</span>
+                                    <span th:text="${ci.item.category.name}">Category</span>
+                                </div>
+                                
+                                <a th:href="@{'/items/' + ${ci.item.id}}" class="font-bold text-sm text-mono-900 dark:text-mono-100 hover:underline block"
+                                   th:text="${ci.item.name}">Equipment Name</a>
+
+                                <div class="text-[11px] text-mono-500 flex items-center space-x-1 mt-1">
+                                    <i data-lucide="building" class="w-3 h-3"></i>
+                                    <span th:text="${ci.item.seller.organizationName != null ? ci.item.seller.organizationName : ci.item.seller.name}">Seller Org</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Update Form / Controls -->
+                        <form action="/cart/update" method="post" class="flex items-center space-x-4">
+                            <input type="hidden" name="itemId" th:value="${ci.item.id}">
+
+                            <!-- Qty & Days -->
+                            <div class="flex items-center space-x-2 text-xs">
+                                <div>
+                                    <span class="text-[10px] font-mono text-mono-400 block">Units</span>
+                                    <input type="number" name="quantity" th:value="${ci.quantity}" min="1" th:max="${ci.item.availableQuantity}"
+                                           class="w-14 px-2 py-1 text-center font-mono rounded border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950">
+                                </div>
+                                <span class="text-mono-400 mt-3">&times;</span>
+                                <div>
+                                    <span class="text-[10px] font-mono text-mono-400 block">Days</span>
+                                    <input type="number" name="rentalDays" th:value="${ci.rentalDays}" min="1" max="90"
+                                           class="w-14 px-2 py-1 text-center font-mono rounded border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950">
+                                </div>
+                                <button type="submit" class="mt-3 p-1.5 rounded hover:bg-mono-100 dark:hover:bg-mono-800" title="Update Quantity">
+                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-mono-500"></i>
+                                </button>
+                            </div>
+
+                            <!-- Line Subtotal -->
+                            <div class="text-right min-w-[120px]">
+                                <div class="font-mono font-bold text-sm text-mono-900 dark:text-mono-100">
+                                    ₹<span th:text="${#numbers.formatDecimal(ci.subtotal, 1, 2)}">150.00</span>
+                                </div>
+                                <div class="text-[10px] font-mono text-mono-500 mt-0.5 space-y-0.5">
+                                    <div>Rent: ₹<span th:text="${#numbers.formatDecimal(ci.rentalFee, 1, 2)}">150.00</span></div>
+                                    <div th:if="${ci.depositAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}" class="text-emerald-600 dark:text-emerald-400">
+                                        +Deposit: ₹<span th:text="${#numbers.formatDecimal(ci.depositAmount, 1, 2)}">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Remove from cart -->
+                            <button type="submit" th:formaction="@{'/cart/remove/' + ${ci.item.id}}" formmethod="post"
+                                    class="p-1.5 text-mono-400 hover:text-red-500 transition-colors" title="Remove item">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+
+                <div class="flex items-center justify-between text-xs pt-2">
+                    <a href="/items" class="hover:underline flex items-center space-x-1 font-semibold">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                        <span>Continue Browsing</span>
+                    </a>
+                    <form action="/cart/clear" method="post">
+                        <button type="submit" class="text-mono-500 hover:text-red-600 transition-colors">
+                            Clear Entire Cart
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Order Summary Card (4 cols) -->
+            <div class="lg:col-span-4">
+                <div class="p-6 rounded-2xl border-2 border-black dark:border-white bg-white dark:bg-mono-900 shadow-xl space-y-4">
+                    <h3 class="font-bold text-sm uppercase font-mono tracking-wider text-mono-900 dark:text-mono-100">Booking Summary</h3>
+                    
+                    <div class="space-y-2.5 text-xs border-y border-mono-200 dark:border-mono-800 py-4 font-mono">
+                        <div class="flex justify-between">
+                            <span class="text-mono-500">Hardware Units:</span>
+                            <span class="font-bold" th:text="${cart.totalQuantity}">1</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-mono-500">Rental Charges:</span>
+                            <span class="font-bold">₹<span th:text="${#numbers.formatDecimal(cart.totalRentalFee, 1, 2)}">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-mono-500 flex items-center space-x-1">
+                                <span>Security Deposit:</span>
+                                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">100% Refundable</span>
+                            </span>
+                            <span class="font-bold">₹<span th:text="${#numbers.formatDecimal(cart.totalDeposit, 1, 2)}">0.00</span></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-mono-500">Platform Insurance:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Included (₹0)</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold pt-2.5 border-t border-mono-100 dark:border-mono-800">
+                            <span>Estimated Total:</span>
+                            <span class="text-base text-mono-900 dark:text-mono-100">
+                                ₹<span th:text="${#numbers.formatDecimal(cart.totalAmount, 1, 2)}">0.00</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Checkout Button -->
+                    <a href="/checkout" 
+                       class="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 flex items-center justify-center space-x-2 shadow-lg">
+                        <span>Proceed to Reservation</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+
+                    <p class="text-[11px] text-mono-500 text-center leading-relaxed">
+                        Security deposit is 100% refundable upon returning the equipment in inspected condition. No pre-authorization fee until pickup or dispatch.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Equipment Catalog')}"></head>
+
+<body class="bg-mono-50 dark:bg-mono-950 text-mono-900 dark:text-mono-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    <!-- Alerts -->
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <main class="flex-grow w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14 py-8">
+        
+        <!-- Header & Breadcrumbs -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-2 text-xs font-mono text-mono-500 mb-2">
+                <a href="/" class="hover:underline">Home</a>
+                <span>/</span>
+                <span class="text-mono-900 dark:text-mono-100">Equipment Catalog</span>
+            </div>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-mono-900 dark:text-mono-100">Rental Equipment Catalog</h1>
+                    <p class="text-xs text-mono-500 font-mono mt-1">
+                        <span th:text="${items.size()}">0</span> items currently available for lease
+                    </p>
+                </div>
+
+                <!-- Live Keyword Filter Form -->
+                <form action="/items" method="get" class="flex items-center space-x-2">
+                    <input type="hidden" name="category" th:if="${activeCategorySlug != null}" th:value="${activeCategorySlug}">
+                    <div class="relative w-72">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-mono-400"></i>
+                        <input type="text" name="q" th:value="${searchQuery}" placeholder="Search name, SKU, or tags..."
+                               class="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-mono-300 dark:border-mono-700 bg-white dark:bg-mono-900 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
+                    </div>
+                    <button type="submit" class="px-4 py-2 rounded-lg text-xs font-bold bg-black text-white dark:bg-white dark:text-black">
+                        Filter
+                    </button>
+                    <a th:if="${searchQuery != null || activeCategorySlug != null || activeTag != null}" 
+                       href="/items" class="px-3 py-2 rounded-lg text-xs border border-mono-300 dark:border-mono-700 hover:bg-mono-100 dark:hover:bg-mono-900" title="Reset Filters">
+                        Reset
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+            
+            <!-- Category Sidebar -->
+            <aside class="lg:col-span-1 space-y-6">
+                <!-- Categories List -->
+                <div class="p-5 rounded-xl border border-mono-200 dark:border-mono-800 bg-white dark:bg-mono-900">
+                    <h3 class="font-bold text-xs uppercase tracking-wider font-mono text-mono-500 mb-4 flex items-center justify-between">
+                        <span>Categories</span>
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                    </h3>
+                    <ul class="space-y-1 text-xs">
+                        <li>
+                            <a href="/items" 
+                               th:classappend="${activeCategorySlug == null} ? 'bg-mono-900 text-white dark:bg-white dark:text-mono-950 font-bold' : 'hover:bg-mono-100 dark:hover:bg-mono-800 text-mono-700 dark:text-mono-300'"
+                               class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors">
+                                <span>All Categories</span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </li>
+                        <li th:each="cat : ${categories}">
+                            <a th:href="@{/items(category=${cat.slug})}" 
+                               th:classappend="${activeCategorySlug == cat.slug} ? 'bg-mono-900 text-white dark:bg-white dark:text-mono-950 font-bold' : 'hover:bg-mono-100 dark:hover:bg-mono-800 text-mono-700 dark:text-mono-300'"
+                               class="flex items-center justify-between px-3 py-2 rounded-lg transition-colors">
+                                <span th:text="${cat.name}">Category Name</span>
+                                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Items Catalog Grid -->
+            <section class="lg:col-span-3 xl:col-span-4">
+                <div th:if="${items.isEmpty()}" class="p-12 text-center rounded-xl border border-dashed border-mono-300 dark:border-mono-800 bg-white dark:bg-mono-900">
+                    <i data-lucide="package-x" class="w-12 h-12 mx-auto text-mono-400 mb-3"></i>
+                    <h3 class="text-base font-bold">No rental items found</h3>
+                    <p class="text-xs text-mono-500 mt-1 max-w-sm mx-auto">
+                        No equipment matched your active filters or search terms. Try clearing your filters.
+                    </p>
+                    <a href="/items" class="mt-4 inline-block px-4 py-2 text-xs font-semibold rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                        Reset All Filters
+                    </a>
+                </div>
+
+                <div th:unless="${items.isEmpty()}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                    <div th:each="item : ${items}">
+                        <div th:replace="~{fragments/item-card :: card(${item})}"></div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer & Scripts -->
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <div th:replace="~{fragments/layout :: scripts}"></div>
+
+</body>
+</html>
