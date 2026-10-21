@@ -33,3 +33,10 @@ desktop.ini
 # Runtime logs & Agent cache
 logs/
 .superpowers/
+
+# Presentations & document exports
+README.pdf
+README_printable.html
+RIMS_Project_Presentation.pptx
+RIMS_Simple_Presentation.pptx
+
