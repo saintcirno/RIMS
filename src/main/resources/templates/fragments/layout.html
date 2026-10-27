@@ -232,9 +232,23 @@
                             </div>
                         </div>
 
-                        <a href="/register/buyer" class="px-3 py-1.5 rounded-md text-xs font-semibold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity">
-                            Sign Up
-                        </a>
+                        <div class="relative group">
+                            <button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity">
+                                <span>Sign Up</span>
+                                <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </button>
+                            <!-- Dropdown for dedicated registration portals -->
+                            <div class="absolute right-0 mt-1 w-52 py-2 rounded-lg bg-white dark:bg-mono-900 border border-mono-200 dark:border-mono-700 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                                <a href="/register/buyer" class="flex items-center px-4 py-2 text-xs text-mono-700 dark:text-mono-300 hover:bg-mono-100 dark:hover:bg-mono-800 hover:text-black dark:hover:text-white transition-colors">
+                                    <i data-lucide="user" class="w-3.5 h-3.5 mr-2"></i>
+                                    <span>Customer Sign Up</span>
+                                </a>
+                                <a href="/register/seller" class="flex items-center px-4 py-2 text-xs text-mono-700 dark:text-mono-300 hover:bg-mono-100 dark:hover:bg-mono-800 hover:text-black dark:hover:text-white transition-colors">
+                                    <i data-lucide="store" class="w-3.5 h-3.5 mr-2"></i>
+                                    <span>Seller Registration (Org)</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
