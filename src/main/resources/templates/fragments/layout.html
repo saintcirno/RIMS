@@ -130,7 +130,7 @@
 
     <!-- Global Navigation -->
     <header th:fragment="navbar" class="rims-navbar sticky top-0 z-50 border-b border-mono-200 dark:border-mono-800 bg-white/95 dark:bg-mono-950/95 backdrop-blur-md transition-colors shadow-sm dark:shadow-none">
-        <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-14">
+        <div class="w-full max-w-[1600px] mx-auto px-2.5 sm:px-6 lg:px-10 xl:px-14">
             <div class="flex items-center justify-between h-16">
                 
                 <!-- Brand / Logo -->
@@ -153,7 +153,7 @@
                 </div>
 
                 <!-- Right Actions: Search, Mode Switch, Cart, Auth Portals -->
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-1.5 sm:space-x-3">
                     
                     <!-- Search Bar Shortcut -->
                     <form action="/items" method="get" class="hidden lg:flex items-center relative">
@@ -184,19 +184,19 @@
                         
                         <!-- Role-based Dashboard Button -->
                         <a th:if="${session.currentUser.admin}" href="/admin/dashboard" 
-                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all">
+                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all whitespace-nowrap">
                             <i data-lucide="shield" class="w-3.5 h-3.5"></i>
                             <span>SUDO Dashboard</span>
                         </a>
 
                         <a th:if="${session.currentUser.seller}" href="/seller/dashboard" 
-                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all">
+                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all whitespace-nowrap">
                             <i data-lucide="store" class="w-3.5 h-3.5"></i>
                             <span>Seller Dashboard</span>
                         </a>
 
                         <a th:if="${session.currentUser.buyer}" href="/buyer/dashboard" 
-                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all">
+                           class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-mono-900 text-white dark:bg-white dark:text-mono-950 hover:opacity-90 shadow-sm transition-all whitespace-nowrap">
                             <i data-lucide="user" class="w-3.5 h-3.5"></i>
                             <span>My Rentals</span>
                         </a>
@@ -208,9 +208,9 @@
                     </div>
 
                     <!-- Guest / Portal Login Options -->
-                    <div th:unless="${session.currentUser != null}" class="flex items-center space-x-1.5">
+                    <div th:unless="${session.currentUser != null}" class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
                         <div class="relative group">
-                            <button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-mono-300 dark:border-mono-700 bg-mono-100/60 dark:bg-mono-900/80 hover:bg-mono-200/70 dark:hover:bg-mono-800 text-mono-800 dark:text-mono-200 transition-colors">
+                            <button class="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium border border-mono-300 dark:border-mono-700 bg-mono-100/60 dark:bg-mono-900/80 hover:bg-mono-200/70 dark:hover:bg-mono-800 text-mono-800 dark:text-mono-200 transition-colors whitespace-nowrap">
                                 <span>Sign In</span>
                                 <i data-lucide="chevron-down" class="w-3 h-3"></i>
                             </button>
@@ -233,7 +233,7 @@
                         </div>
 
                         <div class="relative group">
-                            <button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity">
+                            <button class="flex items-center space-x-1 sm:space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity whitespace-nowrap">
                                 <span>Sign Up</span>
                                 <i data-lucide="chevron-down" class="w-3 h-3"></i>
                             </button>
