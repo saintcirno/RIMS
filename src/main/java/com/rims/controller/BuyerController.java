@@ -77,7 +77,7 @@ public class BuyerController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> initiateRazorpayOrder(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(defaultValue = "3") int rentalDays,
+            @RequestParam(defaultValue = "1") int rentalDays,
             @RequestParam(required = false) String notes,
             HttpSession session) {
 
@@ -89,6 +89,10 @@ public class BuyerController {
             err.put("success", false);
             err.put("message", "Rental cart is empty.");
             return ResponseEntity.badRequest().body(err);
+        }
+
+        if (rentalDays > 0) {
+            cart.setRentalDays(rentalDays);
         }
 
         try {
@@ -161,7 +165,7 @@ public class BuyerController {
 
     @PostMapping("/checkout")
     public String processCheckout(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                  @RequestParam(defaultValue = "3") int rentalDays,
+                                  @RequestParam(defaultValue = "1") int rentalDays,
                                   @RequestParam(required = false) String notes,
                                   HttpSession session,
                                   RedirectAttributes redirectAttributes) {
@@ -171,6 +175,10 @@ public class BuyerController {
         if (cart == null || cart.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cart is empty.");
             return "redirect:/cart";
+        }
+
+        if (rentalDays > 0) {
+            cart.setRentalDays(rentalDays);
         }
 
         try {

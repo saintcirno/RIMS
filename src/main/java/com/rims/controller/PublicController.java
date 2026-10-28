@@ -1,5 +1,6 @@
 package com.rims.controller;
 
+import com.rims.model.CartItem;
 import com.rims.model.Category;
 import com.rims.model.Item;
 import com.rims.model.RentalCart;
@@ -63,7 +64,7 @@ public class PublicController {
     }
 
     @GetMapping("/items/{id}")
-    public String itemDetail(@PathVariable Long id, Model model) {
+    public String itemDetail(@PathVariable Long id, HttpSession session, Model model) {
         Optional<Item> itemOpt = itemService.findById(id);
         if (itemOpt.isEmpty() || !itemOpt.get().isActive()) {
             return "redirect:/items?error=not_found";
@@ -78,6 +79,22 @@ public class PublicController {
             related = related.subList(0, 3);
         }
         model.addAttribute("relatedItems", related);
+
+        // Sync duration & quantity from current cart or selection
+        RentalCart cart = (RentalCart) session.getAttribute("rentalCart");
+        CartItem cartItem = null;
+        int selectedQuantity = 1;
+        int selectedDays = (cart != null && cart.getRentalDays() > 0) ? cart.getRentalDays() : 1;
+        if (cart != null) {
+            cartItem = cart.findItem(item.getId());
+            if (cartItem != null) {
+                selectedQuantity = Math.min(cartItem.getQuantity(), item.getAvailableQuantity());
+                selectedDays = cartItem.getRentalDays();
+            }
+        }
+        model.addAttribute("cartItem", cartItem);
+        model.addAttribute("selectedQuantity", selectedQuantity);
+        model.addAttribute("selectedDays", selectedDays);
 
         return "public/item-detail";
     }
@@ -94,15 +111,20 @@ public class PublicController {
     @PostMapping("/cart/add")
     public String addToCart(@RequestParam Long itemId,
                             @RequestParam(defaultValue = "1") int quantity,
-                            @RequestParam(defaultValue = "3") int rentalDays,
+                            @RequestParam(defaultValue = "1") int rentalDays,
                             HttpSession session,
                             RedirectAttributes redirectAttributes) {
         Optional<Item> itemOpt = itemService.findById(itemId);
         if (itemOpt.isPresent() && itemOpt.get().isActive()) {
             Item item = itemOpt.get();
             RentalCart cart = getOrCreateCart(session);
+            boolean alreadyInCart = cart.findItem(itemId) != null;
             cart.addItem(item, quantity, rentalDays);
-            redirectAttributes.addFlashAttribute("successMessage", "Added \"" + item.getName() + "\" to your rental cart.");
+            if (alreadyInCart) {
+                redirectAttributes.addFlashAttribute("successMessage", "Updated \"" + item.getName() + "\" in your rental cart.");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Added \"" + item.getName() + "\" to your rental cart.");
+            }
         }
         return "redirect:/cart";
     }

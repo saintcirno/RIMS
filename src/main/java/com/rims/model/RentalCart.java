@@ -8,7 +8,7 @@ import java.util.List;
 public class RentalCart implements Serializable {
 
     private List<CartItem> items = new ArrayList<>();
-    private int defaultDays = 3;
+    private int defaultDays = 1;
 
     public RentalCart() {}
 
@@ -16,15 +16,51 @@ public class RentalCart implements Serializable {
         return items;
     }
 
+    public int getDefaultDays() {
+        return defaultDays;
+    }
+
+    public void setDefaultDays(int defaultDays) {
+        this.defaultDays = defaultDays > 0 ? defaultDays : 1;
+    }
+
+    public int getRentalDays() {
+        if (!items.isEmpty()) {
+            return items.get(0).getRentalDays();
+        }
+        return defaultDays > 0 ? defaultDays : 1;
+    }
+
+    public void setRentalDays(int rentalDays) {
+        int days = rentalDays > 0 ? rentalDays : 1;
+        this.defaultDays = days;
+        for (CartItem ci : items) {
+            ci.setRentalDays(days);
+        }
+    }
+
+    public CartItem findItem(Long itemId) {
+        if (itemId == null) return null;
+        for (CartItem ci : items) {
+            if (ci.getItem() != null && itemId.equals(ci.getItem().getId())) {
+                return ci;
+            }
+        }
+        return null;
+    }
+
     public void addItem(Item item, int quantity, int rentalDays) {
+        int days = rentalDays > 0 ? rentalDays : defaultDays;
+        this.defaultDays = days;
+        int qty = quantity > 0 ? quantity : 1;
         for (CartItem ci : items) {
             if (ci.getItem().getId().equals(item.getId())) {
-                ci.setQuantity(ci.getQuantity() + quantity);
-                ci.setRentalDays(rentalDays > 0 ? rentalDays : ci.getRentalDays());
+                ci.setQuantity(qty);
+                ci.setRentalDays(days);
                 return;
             }
         }
-        items.add(new CartItem(item, quantity, rentalDays > 0 ? rentalDays : defaultDays));
+        items.add(new CartItem(item, qty, days));
     }
 
     public void removeItem(Long itemId) {
@@ -38,7 +74,9 @@ public class RentalCart implements Serializable {
                     removeItem(itemId);
                 } else {
                     ci.setQuantity(quantity);
-                    ci.setRentalDays(days > 0 ? days : 1);
+                    int d = days > 0 ? days : 1;
+                    ci.setRentalDays(d);
+                    this.defaultDays = d;
                 }
                 return;
             }

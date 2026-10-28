@@ -68,7 +68,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-mono text-mono-500 mb-1">Rental Duration (Days) *</label>
-                            <input type="number" id="rentalDaysInput" name="rentalDays" value="3" min="1" max="90" required
+                            <input type="number" id="rentalDaysInput" name="rentalDays" th:value="${cart.rentalDays}" value="1" min="1" max="90" required
                                    onchange="updateTotalCalculation()" oninput="updateTotalCalculation()"
                                    class="w-full px-3 py-2 text-xs font-mono rounded-lg border border-mono-300 dark:border-mono-700 bg-mono-50 dark:bg-mono-950 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">
                         </div>
@@ -174,22 +174,22 @@
                     <div class="border-t-2 border-mono-200 dark:border-mono-800 pt-4 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-mono-500">
                             <span>Rental Duration:</span>
-                            <span id="durationDisplay" class="font-bold text-mono-900 dark:text-mono-100">3 Days</span>
+                            <span id="durationDisplay" class="font-bold text-mono-900 dark:text-mono-100" th:text="${cart.rentalDays} + (${cart.rentalDays == 1} ? ' Day' : ' Days')">1 Day</span>
                         </div>
                         <div class="flex justify-between text-mono-500">
                             <span>Base Rental Charges:</span>
-                            <span>₹<span id="rentalFeeTotalDisplay">0.00</span></span>
+                            <span>₹<span id="rentalFeeTotalDisplay" th:text="${#numbers.formatDecimal(cart.totalRentalFee, 1, 2)}">0.00</span></span>
                         </div>
                         <div class="flex justify-between text-mono-500">
                             <span class="flex items-center space-x-1">
                                 <span>Security Deposit:</span>
                                 <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold">100% Refundable</span>
                             </span>
-                            <span>₹<span id="depositTotalDisplay">0.00</span></span>
+                            <span>₹<span id="depositTotalDisplay" th:text="${#numbers.formatDecimal(cart.totalDeposit, 1, 2)}">0.00</span></span>
                         </div>
                         <div class="flex justify-between text-base font-extrabold text-mono-900 dark:text-mono-100 pt-2 border-t border-mono-100 dark:border-mono-800">
                             <span>Total Payable (INR):</span>
-                            <span>₹<span id="grandTotalDisplay">0.00</span></span>
+                            <span>₹<span id="grandTotalDisplay" th:text="${#numbers.formatDecimal(cart.totalAmount, 1, 2)}">0.00</span></span>
                         </div>
                     </div>
 
@@ -197,7 +197,7 @@
                     <button type="button" id="payRazorpayBtn" onclick="initiateRazorpayCheckout()"
                             class="w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-black text-white dark:bg-white dark:text-black hover:opacity-90 shadow-xl flex items-center justify-center space-x-2 transition-all">
                         <i data-lucide="shield-check" class="w-4 h-4"></i>
-                        <span id="payBtnText">Pay ₹<span id="payBtnAmount">0.00</span> via Razorpay</span>
+                        <span id="payBtnText">Pay ₹<span id="payBtnAmount" th:text="${#numbers.formatDecimal(cart.totalAmount, 1, 2)}">0.00</span> via Razorpay</span>
                     </button>
 
                     <div class="text-[10px] text-mono-400 text-center font-mono space-y-1">
